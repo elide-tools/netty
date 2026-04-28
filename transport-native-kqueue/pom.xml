@@ -84,6 +84,8 @@
                          methods which are not expected to be present on MacOS (e.g. accept4). -->
                     <arg>MACOSX_DEPLOYMENT_TARGET=10.9</arg>
                     <configureArg>--libdir=${project.build.directory}/native-build/target/lib</configureArg>
+                    <configureArg>--enable-static</configureArg>
+                    <configureArg>--with-pic</configureArg>
                   </configureArgs>
                 </configuration>
                 <goals>
