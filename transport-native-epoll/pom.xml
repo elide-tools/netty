@@ -119,6 +119,8 @@
       </activation>
       <properties>
         <skipTests>false</skipTests>
+        <staticLib.libname>netty_transport_native_epoll_${os.detected.arch}</staticLib.libname>
+        <skipStaticJar>false</skipStaticJar>
       </properties>
 
       <build>
@@ -165,6 +167,8 @@
                     <arg>${jni.compiler.args.libs}</arg>
                     <arg>${jni.compiler.args.cflags}</arg>
                     <configureArg>--libdir=${project.build.directory}/native-build/target/lib</configureArg>
+                    <configureArg>--enable-static</configureArg>
+                    <configureArg>--with-pic</configureArg>
                   </configureArgs>
                 </configuration>
                 <goals>
@@ -244,6 +248,8 @@
         <!-- use aarch_64 as this is also what os.detected.arch will use on an aarch64 system -->
         <jni.classifier>${os.detected.name}-aarch_64</jni.classifier>
         <javaModuleNameClassifier>${os.detected.name}.aarch_64</javaModuleNameClassifier>
+        <staticLib.libname>netty_transport_native_epoll_aarch_64</staticLib.libname>
+        <skipStaticJar>false</skipStaticJar>
       </properties>
       <build>
         <pluginManagement>
@@ -338,6 +344,8 @@
                     <configureArg>--libdir=${project.build.directory}/native-build/target/lib</configureArg>
                     <configureArg>--host=aarch64-linux-gnu</configureArg>
                     <configureArg>CC=aarch64-none-linux-gnu-gcc</configureArg>
+                    <configureArg>--enable-static</configureArg>
+                    <configureArg>--with-pic</configureArg>
                   </configureArgs>
                 </configuration>
                 <goals>
@@ -417,6 +425,8 @@
         <!-- use riscv64 as this is also what os.detected.arch will use on an riscv64 system -->
         <jni.classifier>${os.detected.name}-riscv64</jni.classifier>
         <javaModuleNameClassifier>${os.detected.name}.riscv64</javaModuleNameClassifier>
+        <staticLib.libname>netty_transport_native_epoll_riscv64</staticLib.libname>
+        <skipStaticJar>false</skipStaticJar>
       </properties>
       <build>
         <pluginManagement>
@@ -517,6 +527,8 @@
                     <configureArg>--libdir=${project.build.directory}/native-build/target/lib</configureArg>
                     <configureArg>--host=riscv64-linux-gnu</configureArg>
                     <configureArg>CC=riscv64-linux-gnu-gcc</configureArg>
+                    <configureArg>--enable-static</configureArg>
+                    <configureArg>--with-pic</configureArg>
                   </configureArgs>
                 </configuration>
                 <goals>
