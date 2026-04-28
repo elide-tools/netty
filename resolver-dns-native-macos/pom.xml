@@ -37,6 +37,8 @@
       <properties>
         <jni.compiler.args.ldflags>LDFLAGS=-Wl,-weak_library,${unix.common.lib.unpacked.dir}/lib${unix.common.lib.name}.a -Wl,-platform_version,macos,10.9,10.9</jni.compiler.args.ldflags>
         <skipTests>false</skipTests>
+        <staticLib.libname>netty_resolver_dns_native_macos_${os.detected.arch}</staticLib.libname>
+        <skipStaticJar>false</skipStaticJar>
       </properties>
       <build>
         <plugins>
@@ -81,6 +83,8 @@
                     <arg>${jni.compiler.args.ldflags}</arg>
                     <arg>${jni.compiler.args.cflags}</arg>
                     <arg>MACOSX_DEPLOYMENT_TARGET=10.9</arg>
+                    <configureArg>--enable-static</configureArg>
+                    <configureArg>--with-pic</configureArg>
                   </configureArgs>
                 </configuration>
                 <goals>
@@ -165,6 +169,8 @@
         <jni.classifier>${os.detected.name}-aarch_64</jni.classifier>
         <javaModuleNameClassifier>${os.detected.name}.aarch_64</javaModuleNameClassifier>
         <skipTests>true</skipTests>
+        <staticLib.libname>netty_resolver_dns_native_macos_aarch_64</staticLib.libname>
+        <skipStaticJar>false</skipStaticJar>
       </properties>
       <build>
         <plugins>
@@ -210,6 +216,8 @@
                     <arg>${jni.compiler.args.cflags}</arg>
                     <configureArg>--host=aarch64-apple-darwin</configureArg>
                     <arg>MACOSX_DEPLOYMENT_TARGET=11.0</arg>
+                    <configureArg>--enable-static</configureArg>
+                    <configureArg>--with-pic</configureArg>
                   </configureArgs>
                 </configuration>
                 <goals>
@@ -295,6 +303,8 @@
         <jni.classifier>${os.detected.name}-x86_64</jni.classifier>
         <javaModuleNameClassifier>${os.detected.name}.x86_64</javaModuleNameClassifier>
         <skipTests>true</skipTests>
+        <staticLib.libname>netty_resolver_dns_native_macos_x86_64</staticLib.libname>
+        <skipStaticJar>false</skipStaticJar>
       </properties>
       <build>
         <plugins>
@@ -340,6 +350,8 @@
                     <arg>${jni.compiler.args.cflags}</arg>
                     <configureArg>--host=x86_64-apple-darwin</configureArg>
                     <arg>MACOSX_DEPLOYMENT_TARGET=10.9</arg>
+                    <configureArg>--enable-static</configureArg>
+                    <configureArg>--with-pic</configureArg>
                   </configureArgs>
                 </configuration>
                 <goals>
