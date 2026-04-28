@@ -36,6 +36,8 @@
       </activation>
       <properties>
         <jni.compiler.args.ldflags>LDFLAGS=-Wl,-weak_library,${unix.common.lib.unpacked.dir}/lib${unix.common.lib.name}.a -Wl,-platform_version,macos,10.9,10.9</jni.compiler.args.ldflags>
+        <staticLib.libname>netty_transport_native_kqueue_${os.detected.arch}</staticLib.libname>
+        <skipStaticJar>false</skipStaticJar>
       </properties>
       <build>
         <plugins>
@@ -169,6 +171,8 @@
         <jni.compiler.args.cflags>CFLAGS=-target arm64-apple-macos11 -O3 -Werror -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden -I${unix.common.include.unpacked.dir}</jni.compiler.args.cflags>
         <jni.compiler.args.ldflags>LDFLAGS=-arch arm64 -Wl,-weak_library,${unix.common.lib.unpacked.dir}/lib${unix.common.lib.name}.a -Wl,-platform_version,macos,11.0,11.0</jni.compiler.args.ldflags>
         <skipTests>true</skipTests>
+        <staticLib.libname>netty_transport_native_kqueue_aarch_64</staticLib.libname>
+        <skipStaticJar>false</skipStaticJar>
       </properties>
       <build>
         <plugins>
@@ -215,6 +219,8 @@
                     <arg>MACOSX_DEPLOYMENT_TARGET=11.0</arg>
                     <configureArg>--host=aarch64-apple-darwin</configureArg>
                     <configureArg>--libdir=${project.build.directory}/native-build/target/lib</configureArg>
+                    <configureArg>--enable-static</configureArg>
+                    <configureArg>--with-pic</configureArg>
                   </configureArgs>
                 </configuration>
                 <goals>
@@ -298,6 +304,8 @@
         <jni.compiler.args.cflags>CFLAGS=-target x86_64-apple-macos10.9 -O3 -Werror -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden -I${unix.common.include.unpacked.dir}</jni.compiler.args.cflags>
         <jni.compiler.args.ldflags>LDFLAGS=-arch x86_64 -Wl,-weak_library,${unix.common.lib.unpacked.dir}/lib${unix.common.lib.name}.a -Wl,-platform_version,macos,10.9,10.9</jni.compiler.args.ldflags>
         <skipTests>true</skipTests>
+        <staticLib.libname>netty_transport_native_kqueue_x86_64</staticLib.libname>
+        <skipStaticJar>false</skipStaticJar>
       </properties>
       <build>
         <plugins>
@@ -344,6 +352,8 @@
                     <arg>MACOSX_DEPLOYMENT_TARGET=10.9</arg>
                     <configureArg>--host=x86_64-apple-darwin</configureArg>
                     <configureArg>--libdir=${project.build.directory}/native-build/target/lib</configureArg>
+                    <configureArg>--enable-static</configureArg>
+                    <configureArg>--with-pic</configureArg>
                   </configureArgs>
                 </configuration>
                 <goals>
@@ -426,6 +436,10 @@
           <name>openbsd</name>
         </os>
       </activation>
+      <properties>
+        <staticLib.libname>netty_transport_native_kqueue_${os.detected.arch}</staticLib.libname>
+        <skipStaticJar>false</skipStaticJar>
+      </properties>
       <build>
         <plugins>
           <plugin>
@@ -470,6 +484,8 @@
                   <configureArgs>
                     <arg>${jni.compiler.args.ldflags}</arg>
                     <arg>${jni.compiler.args.cflags}</arg>
+                    <configureArg>--enable-static</configureArg>
+                    <configureArg>--with-pic</configureArg>
                   </configureArgs>
                 </configuration>
                 <goals>
@@ -552,6 +568,10 @@
           <name>freebsd</name>
         </os>
       </activation>
+      <properties>
+        <staticLib.libname>netty_transport_native_kqueue_${os.detected.arch}</staticLib.libname>
+        <skipStaticJar>false</skipStaticJar>
+      </properties>
       <build>
         <plugins>
           <plugin>
@@ -596,6 +616,8 @@
                   <configureArgs>
                     <arg>${jni.compiler.args.ldflags}</arg>
                     <arg>${jni.compiler.args.cflags}</arg>
+                    <configureArg>--enable-static</configureArg>
+                    <configureArg>--with-pic</configureArg>
                   </configureArgs>
                 </configuration>
                 <goals>
