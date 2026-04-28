@@ -42,6 +42,7 @@
     <jniArch>${os.detected.arch}</jniArch>
     <jni.classifier>${os.detected.name}-${jniArch}</jni.classifier>
     <jniLibName>netty_transport_native_io_uring42_${jniArch}</jniLibName>
+    <staticLib.libname>${jniLibName}</staticLib.libname>
     <nativeLibOnlyDir>${project.build.directory}/native-lib-only</nativeLibOnlyDir>
     <extraConfigureArg />
     <extraConfigureArg2 />
@@ -61,6 +62,7 @@
       <properties>
         <!-- Enable testsuite -->
         <skipTests>false</skipTests>
+        <skipStaticJar>false</skipStaticJar>
       </properties>
 
       <build>
@@ -128,6 +130,8 @@
                     <configureArg>--libdir=${project.build.directory}/native-build/target/lib</configureArg>
                     <configureArg>${extraConfigureArg}</configureArg>
                     <configureArg>${extraConfigureArg2}</configureArg>
+                    <configureArg>--enable-static</configureArg>
+                    <configureArg>--with-pic</configureArg>
                   </configureArgs>
                 </configuration>
                 <goals>
