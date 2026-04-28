@@ -772,6 +772,9 @@
     <skipDeploy>false</skipDeploy>
     <multiReleaseJar>true</multiReleaseJar>
     <javaModuleName />
+    <skipStaticJar>true</skipStaticJar>
+    <staticLib.classifier>${jni.classifier}-static</staticLib.classifier>
+    <staticLib.includeDir>${nativeSourceDirectory}</staticLib.includeDir>
   </properties>
 
   <modules>
@@ -2004,6 +2007,38 @@
               </exclusions>
             </dependency>
           </dependencies>
+          <executions>
+            <execution>
+              <id>static-jar</id>
+              <phase>package</phase>
+              <goals><goal>run</goal></goals>
+              <configuration>
+                <skip>${skipStaticJar}</skip>
+                <target>
+                  <fail message="Expected static archive missing: ${project.build.directory}/native-build/.libs/lib${staticLib.libname}.a">
+                    <condition><not><available file="${project.build.directory}/native-build/.libs/lib${staticLib.libname}.a" /></not></condition>
+                  </fail>
+                  <mkdir dir="${project.build.directory}/static-jar-work/META-INF/native/lib" />
+                  <mkdir dir="${project.build.directory}/static-jar-work/META-INF/native/include" />
+                  <copy file="${project.build.directory}/native-build/.libs/lib${staticLib.libname}.a"
+                        todir="${project.build.directory}/static-jar-work/META-INF/native/lib" />
+                  <copy todir="${project.build.directory}/static-jar-work/META-INF/native/include" failonerror="false">
+                    <fileset dir="${staticLib.includeDir}" includes="*.h" />
+                  </copy>
+                  <jar destfile="${project.build.directory}/${project.build.finalName}-${staticLib.classifier}.jar"
+                       basedir="${project.build.directory}/static-jar-work">
+                    <manifest>
+                      <attribute name="Implementation-Title" value="${project.artifactId}" />
+                      <attribute name="Implementation-Version" value="${project.version}" />
+                    </manifest>
+                  </jar>
+                  <attachartifact file="${project.build.directory}/${project.build.finalName}-${staticLib.classifier}.jar"
+                                  classifier="${staticLib.classifier}"
+                                  type="jar" />
+                </target>
+              </configuration>
+            </execution>
+          </executions>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
