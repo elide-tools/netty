@@ -42,6 +42,7 @@
     <jni.classifier>${os.detected.name}-${os.detected.arch}</jni.classifier>
     <jniLibPrefix>netty_quiche42</jniLibPrefix>
     <jniLibName>${jniLibPrefix}_${os.detected.name}_${os.detected.arch}</jniLibName>
+    <staticLib.libname>${jniLibName}</staticLib.libname>
     <jniUtilIncludeDir>${project.build.directory}/netty-jni-util/</jniUtilIncludeDir>
     <boringsslSourceDir>${project.build.directory}/boringssl-source</boringsslSourceDir>
     <boringsslBuildDir>${boringsslSourceDir}/build-target</boringsslBuildDir>
@@ -128,6 +129,7 @@
         <extraLdflags>-platform_version,macos,${macosxDeploymentTarget},${macosxDeploymentTarget} -mmacosx-version-min=${macosxDeploymentTarget}</extraLdflags>
         <extraConfigureArg>MACOSX_DEPLOYMENT_TARGET=${macosxDeploymentTarget}</extraConfigureArg>
         <bundleNativeCode>META-INF/native/lib${jniLibName}.jnilib;osname=macos;osname=macosx;processor=${os.detected.arch}</bundleNativeCode>
+        <skipStaticJar>false</skipStaticJar>
       </properties>
     </profile>
     <profile>
@@ -158,6 +160,7 @@
         <quicheTarget>aarch64-apple-darwin</quicheTarget>
         <cargoTarget>--target=${quicheTarget}</cargoTarget>
         <quicheBuildDir>${quicheSourceDir}/target/${quicheTarget}/release</quicheBuildDir>
+        <skipStaticJar>false</skipStaticJar>
       </properties>
     </profile>
     <profile>
@@ -188,6 +191,7 @@
         <quicheTarget>x86_64-apple-darwin</quicheTarget>
         <cargoTarget>--target=${quicheTarget}</cargoTarget>
         <quicheBuildDir>${quicheSourceDir}/target/${quicheTarget}/release</quicheBuildDir>
+        <skipStaticJar>false</skipStaticJar>
       </properties>
     </profile>
     <profile>
@@ -213,6 +217,7 @@
         <libquiche>libquiche.a</libquiche>
         <extraLdflags>-static-libstdc++ -l:libstdc++.a -Wl,--strip-debug -Wl,--exclude-libs,ALL -Wl,-lrt</extraLdflags>
         <bundleNativeCode>META-INF/native/lib${jniLibName}.so;osname=linux;processor=${os.detected.arch}</bundleNativeCode>
+        <skipStaticJar>false</skipStaticJar>
       </properties>
       <dependencies>
         <dependency>
@@ -513,6 +518,7 @@
         <quicheTarget>aarch64-unknown-linux-gnu</quicheTarget>
         <cargoTarget>--target=${quicheTarget}</cargoTarget>
         <quicheBuildDir>${quicheSourceDir}/target/${quicheTarget}/release</quicheBuildDir>
+        <skipStaticJar>false</skipStaticJar>
       </properties>
     </profile>
     <profile>
@@ -1134,6 +1140,8 @@
                 <configureArg>${extraConfigureArg}</configureArg>
                 <configureArg>${extraConfigureArg2}</configureArg>
                 <configureArg>--libdir=${project.build.directory}/native-build/target/lib</configureArg>
+                <configureArg>--enable-static</configureArg>
+                <configureArg>--with-pic</configureArg>
               </configureArgs>
             </configuration>
             <goals>
