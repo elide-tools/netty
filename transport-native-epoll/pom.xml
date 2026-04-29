@@ -121,6 +121,7 @@
         <skipTests>false</skipTests>
         <staticLib.libname>netty_transport_native_epoll_${os.detected.arch}</staticLib.libname>
         <skipStaticJar>false</skipStaticJar>
+        <staticLib.archivePath>${project.build.directory}/native-static/lib${staticLib.libname}.a</staticLib.archivePath>
       </properties>
 
       <build>
@@ -167,8 +168,6 @@
                     <arg>${jni.compiler.args.libs}</arg>
                     <arg>${jni.compiler.args.cflags}</arg>
                     <configureArg>--libdir=${project.build.directory}/native-build/target/lib</configureArg>
-                    <configureArg>--enable-static</configureArg>
-                    <configureArg>--with-pic</configureArg>
                   </configureArgs>
                 </configuration>
                 <goals>
@@ -178,6 +177,33 @@
               </execution>
             </executions>
           </plugin>
+
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>build-static-archive</id>
+                <phase>prepare-package</phase>
+                <goals><goal>run</goal></goals>
+                <configuration>
+                  <skip>${skipStaticJar}</skip>
+                  <target>
+                    <exec executable="make" dir="${project.basedir}" failonerror="true">
+                      <arg value="-f" />
+                      <arg value="src/main/c/Makefile.static" />
+                      <arg value="JNI_PLATFORM=linux" />
+                      <arg value="LIB_DIR=${project.build.directory}/native-static" />
+                      <arg value="LIB_NAME=lib${staticLib.libname}" />
+                      <arg value="SRC_DIR=${nativeSourceDirectory}" />
+                      <arg value="UNIX_COMMON_INCLUDE_DIR=${unix.common.include.unpacked.dir}" />
+                      <arg value="UNIX_COMMON_AR=${unix.common.lib.unpacked.dir}/lib${unix.common.lib.name}.a" />
+                    </exec>
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
           <plugin>
             <groupId>org.apache.felix</groupId>
             <artifactId>maven-bundle-plugin</artifactId>

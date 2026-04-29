@@ -55,6 +55,7 @@
 
 // Add define if NETTY_BUILD_STATIC is defined so it is picked up in netty_jni_util.c
 #ifdef NETTY_BUILD_STATIC
+#include "netty_jni_static.h"
 #define NETTY_JNI_UTIL_BUILD_STATIC
 #endif
 
@@ -867,6 +868,46 @@ error:
 }
 
 // JNI Method Registration Table End
+
+#ifdef NETTY_BUILD_STATIC
+// Static-JNI aliases — emit Java_<class>_<method> as default-visibility entries
+// pointing at the existing internal functions, so a JVM that resolves natives
+// via dlsym on the program image (the static-link path) finds them directly.
+// Mirrors the JNINativeMethod tables above; keep in sync when methods change.
+NETTY_JNI_ALIAS(io_netty_channel_epoll_NativeStaticallyReferencedJniMethods, epollet,              netty_epoll_native_epollet)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_NativeStaticallyReferencedJniMethods, epollin,              netty_epoll_native_epollin)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_NativeStaticallyReferencedJniMethods, epollout,             netty_epoll_native_epollout)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_NativeStaticallyReferencedJniMethods, epollrdhup,           netty_epoll_native_epollrdhup)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_NativeStaticallyReferencedJniMethods, epollerr,             netty_epoll_native_epollerr)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_NativeStaticallyReferencedJniMethods, tcpMd5SigMaxKeyLen,   netty_epoll_native_tcpMd5SigMaxKeyLen)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_NativeStaticallyReferencedJniMethods, isSupportingSendmmsg, netty_epoll_native_isSupportingSendmmsg)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_NativeStaticallyReferencedJniMethods, isSupportingRecvmmsg, netty_epoll_native_isSupportingRecvmmsg)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_NativeStaticallyReferencedJniMethods, tcpFastopenMode,      netty_epoll_native_tcpFastopenMode)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_NativeStaticallyReferencedJniMethods, kernelVersion,        netty_epoll_native_kernelVersion)
+
+NETTY_JNI_ALIAS(io_netty_channel_epoll_Native, eventFd,                netty_epoll_native_eventFd)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_Native, timerFd,                netty_epoll_native_timerFd)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_Native, eventFdWrite,           netty_epoll_native_eventFdWrite)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_Native, eventFdRead,            netty_epoll_native_eventFdRead)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_Native, epollCreate,            netty_epoll_native_epollCreate)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_Native, epollWait0,             netty_epoll_native_epollWait0)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_Native, epollWait,              netty_epoll_native_epollWait)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_Native, epollBusyWait0,         netty_epoll_native_epollBusyWait0)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_Native, epollCtlAdd0,           netty_epoll_native_epollCtlAdd0)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_Native, epollCtlMod0,           netty_epoll_native_epollCtlMod0)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_Native, epollCtlDel0,           netty_epoll_native_epollCtlDel0)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_Native, sizeofEpollEvent,       netty_epoll_native_sizeofEpollEvent)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_Native, offsetofEpollData,      netty_epoll_native_offsetofEpollData)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_Native, splice0,                netty_epoll_native_splice0)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_Native, isSupportingUdpSegment, netty_epoll_native_isSupportingUdpSegment)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_Native, registerUnix,           netty_epoll_native_registerUnix)
+
+// Dynamically registered methods — same Java class, signature is computed at
+// runtime, but the symbol name only depends on the method name.
+NETTY_JNI_ALIAS(io_netty_channel_epoll_Native, sendmmsg0, netty_epoll_native_sendmmsg0)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_Native, recvmmsg0, netty_epoll_native_recvmmsg0)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_Native, recvmsg0,  netty_epoll_native_recvmsg0)
+#endif
 
 // IMPORTANT: If you add any NETTY_JNI_UTIL_LOAD_CLASS or NETTY_JNI_UTIL_FIND_CLASS calls you also need to update
 //            Native to reflect that.
