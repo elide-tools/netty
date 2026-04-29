@@ -27,6 +27,7 @@
 
 // Add define if NETTY_BUILD_STATIC is defined so it is picked up in netty_jni_util.c
 #ifdef NETTY_BUILD_STATIC
+#include "netty_jni_static.h"
 #define NETTY_JNI_UTIL_BUILD_STATIC
 #endif
 
@@ -155,6 +156,14 @@ static JNINativeMethod* createDynamicMethodsTable(const char* packagePrefix) {
 }
 
 // JNI Method Registration Table End
+
+#ifdef NETTY_BUILD_STATIC
+// Static-JNI aliases — emit Java_<class>_<method> as default-visibility entries
+// pointing at the existing internal functions, so a JVM that resolves natives
+// via dlsym on the program image (the static-link path) finds them directly.
+// Mirrors the dynamic JNINativeMethod table above; keep in sync when methods change.
+NETTY_JNI_ALIAS(io_netty_resolver_dns_macos_MacOSDnsServerAddressStreamProvider, resolvers, netty_resolver_dns_macos_resolvers)
+#endif
 
 static void netty_resolver_dns_native_macos_JNI_OnUnLoad(JNIEnv* env) {
     NETTY_JNI_UTIL_UNLOAD_CLASS(env, byteArrayClass);
