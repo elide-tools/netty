@@ -28,6 +28,7 @@
 
 // Add define if NETTY_BUILD_STATIC is defined so it is picked up in netty_jni_util.c
 #ifdef NETTY_BUILD_STATIC
+#include "netty_jni_static.h"
 #define NETTY_JNI_UTIL_BUILD_STATIC
 #endif
 
@@ -1512,6 +1513,53 @@ static const JNINativeMethod fixed_method_table[] = {
 static const jint fixed_method_table_size = sizeof(fixed_method_table) / sizeof(fixed_method_table[0]);
 
 // JNI Method Registration Table End
+
+#ifdef NETTY_BUILD_STATIC
+// Static-JNI aliases — emit Java_<class>_<method> as default-visibility entries
+// pointing at the existing internal functions, so a JVM that resolves natives
+// via dlsym on the program image (the static-link path) finds them directly.
+// Mirrors the JNINativeMethod tables above; keep in sync when methods change.
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSLNativeStaticallyReferencedJniMethods, ssl_1verify_1none,                 netty_boringssl_ssl_verify_none)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSLNativeStaticallyReferencedJniMethods, ssl_1verify_1fail_1if_1no_1peer_1cert, netty_boringssl_ssl_verify_fail_if_no_peer_cert)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSLNativeStaticallyReferencedJniMethods, ssl_1verify_1peer,                 netty_boringssl_ssl_verify_peer)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSLNativeStaticallyReferencedJniMethods, x509_1v_1ok,                       netty_boringssl_x509_v_ok)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSLNativeStaticallyReferencedJniMethods, x509_1v_1err_1cert_1has_1expired,  netty_boringssl_x509_v_err_cert_has_expired)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSLNativeStaticallyReferencedJniMethods, x509_1v_1err_1cert_1not_1yet_1valid, netty_boringssl_x509_v_err_cert_not_yet_valid)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSLNativeStaticallyReferencedJniMethods, x509_1v_1err_1cert_1revoked,       netty_boringssl_x509_v_err_cert_revoked)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSLNativeStaticallyReferencedJniMethods, x509_1v_1err_1unspecified,         netty_boringssl_x509_v_err_unspecified)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSLNativeStaticallyReferencedJniMethods, ssl_1sign_1rsa_1pkcs_1sha1,        netty_boringssl_ssl_sign_rsa_pkcs_sha1)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSLNativeStaticallyReferencedJniMethods, ssl_1sign_1rsa_1pkcs_1sha256,      netty_boringssl_ssl_sign_rsa_pkcs_sha256)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSLNativeStaticallyReferencedJniMethods, ssl_1sign_1rsa_1pkcs_1sha384,      netty_boringssl_ssl_sign_rsa_pkcs_sha384)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSLNativeStaticallyReferencedJniMethods, ssl_1sign_1rsa_1pkcs_1sha512,      netty_boringssl_ssl_sign_rsa_pkcs_sha512)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSLNativeStaticallyReferencedJniMethods, ssl_1sign_1ecdsa_1pkcs_1sha1,      netty_boringssl_ssl_sign_ecdsa_pkcs_sha1)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSLNativeStaticallyReferencedJniMethods, ssl_1sign_1ecdsa_1secp256r1_1sha256, netty_boringssl_ssl_sign_ecdsa_secp256r1_sha256)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSLNativeStaticallyReferencedJniMethods, ssl_1sign_1ecdsa_1secp384r1_1sha384, netty_boringssl_ssl_sign_ecdsa_secp384r1_sha384)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSLNativeStaticallyReferencedJniMethods, ssl_1sign_1ecdsa_1secp521r1_1sha512, netty_boringssl_ssl_sign_ecdsa_secp521r1_sha512)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSLNativeStaticallyReferencedJniMethods, ssl_1sign_1rsa_1pss_1rsae_1sha256, netty_boringssl_ssl_sign_rsa_pss_rsae_sha256)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSLNativeStaticallyReferencedJniMethods, ssl_1sign_1rsa_1pss_1rsae_1sha384, netty_boringssl_ssl_sign_rsa_pss_rsae_sha384)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSLNativeStaticallyReferencedJniMethods, ssl_1sign_1rsa_1pss_1rsae_1sha512, netty_boringssl_ssl_sign_rsa_pss_rsae_sha512)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSLNativeStaticallyReferencedJniMethods, ssl_1sign_1ed25519,                netty_boringssl_ssl_sign_ed25519)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSLNativeStaticallyReferencedJniMethods, ssl_1sign_1rsa_1pkcs1_1md5_1sha1,  netty_boringssl_ssl_sign_rsa_pkcs1_md5_sha1)
+
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSL, SSLContext_1new,                     netty_boringssl_SSLContext_new)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSL, SSLContext_1new0,                    netty_boringssl_SSLContext_new0)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSL, SSLContext_1free,                    netty_boringssl_SSLContext_free)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSL, SSLContext_1setSessionCacheTimeout,  netty_boringssl_SSLContext_setSessionCacheTimeout)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSL, SSLContext_1setSessionCacheSize,     netty_boringssl_SSLContext_setSessionCacheSize)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSL, SSLContext_1set_1early_1data_1enabled, netty_boringssl_SSLContext_set_early_data_enabled)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSL, SSLContext_1setSessionTicketKeys,    netty_boringssl_SSLContext_setSessionTicketKeys)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSL, SSLContext_1set1_1groups_1list,      netty_boringssl_SSLContext_set1_groups_list)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSL, SSLContext_1set1_1sigalgs_1list,     netty_boringssl_SSLContext_set1_sigalgs_list)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSL, SSL_1new0,                            netty_boringssl_SSL_new0)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSL, SSL_1free,                            netty_boringssl_SSL_free)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSL, SSL_1getTask,                         netty_boringssl_SSL_getTask)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSL, SSL_1cleanup,                         netty_boringssl_SSL_cleanup)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSL, EVP_1PKEY_1parse,                     netty_boringssl_EVP_PKEY_parse)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSL, EVP_1PKEY_1free,                      netty_boringssl_EVP_PKEY_free)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSL, CRYPTO_1BUFFER_1stack_1new,           netty_boringssl_CRYPTO_BUFFER_stack_new)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSL, CRYPTO_1BUFFER_1stack_1free,          netty_boringssl_CRYPTO_BUFFER_stack_free)
+NETTY_JNI_ALIAS(io_netty_handler_codec_quic_BoringSSL, ERR_1last_1error,                     netty_boringssl_ERR_last_error)
+#endif
 
 static void unload_all_classes(JNIEnv* env) {
     NETTY_JNI_UTIL_UNLOAD_CLASS(env, byteArrayClass);

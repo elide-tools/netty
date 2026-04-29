@@ -1,0 +1,76 @@
+# GNU Makefile for the static-archive build of codec-native-quic.
+# Hand-rolled (mirrors transport-native-unix-common/Makefile pattern) so the
+# static-JNI build can run under different CFLAGS than libtool's shared build.
+#
+# Inputs (set by the antrun execution that invokes this Makefile):
+#   CC                       - compiler; default clang
+#   AR                       - archiver; default llvm-ar
+#   RANLIB                   - ranlib; default llvm-ranlib
+#   JNI_PLATFORM             - "darwin" | "linux"
+#   LIB_DIR                  - output directory for the .a
+#   OBJ_DIR                  - intermediate .o dir; defaults to $(LIB_DIR)/obj
+#   LIB_NAME                 - basename of the lib (e.g. libnetty_quiche42_osx_aarch_64)
+#   SRC_DIR                  - directory containing the netty_quic_*.c sources
+#   JNI_UTIL_DIR             - directory containing netty_jni_util.{c,h}
+#   BORINGSSL_INCLUDE_DIR    - BoringSSL headers (for openssl/*.h)
+#   QUICHE_INCLUDE_DIR       - quiche headers (for quiche.h)
+#   EXTRA_CFLAGS             - additional CFLAGS appended last
+#
+# NOTE on embedded dependencies: this prototype only embeds quic's own .o
+# files into the archive. BoringSSL (libssl.a, libcrypto.a) and quiche
+# (libquiche.a) are NOT embedded; downstream consumers must link those
+# separately. This matches the existing tcnative behavior. Embedding them
+# here is a planned follow-up — see ${boringsslHomeBuildDir} and
+# ${quicheBuildDir} for the per-platform paths the Maven build resolves.
+
+CC      ?= clang
+AR      ?= llvm-ar
+RANLIB  ?= llvm-ranlib
+OBJ_DIR ?= $(LIB_DIR)/obj
+
+JNI_INCLUDE_DIR = $(JAVA_HOME)/include
+JNI_INCLUDES    = -I$(JNI_INCLUDE_DIR) -I$(JNI_INCLUDE_DIR)/$(JNI_PLATFORM)
+
+LIB = $(LIB_DIR)/$(LIB_NAME).a
+
+CFLAGS := $(JNI_INCLUDES) \
+          -I$(SRC_DIR) \
+          -I$(JNI_UTIL_DIR) \
+          -I$(BORINGSSL_INCLUDE_DIR) \
+          -I$(QUICHE_INCLUDE_DIR) \
+          -DNETTY_BUILD_STATIC \
+          -DNETTY_QUIC_BUILD_STATIC \
+          -fPIC \
+          -fvisibility=hidden \
+          -flto=thin \
+          -O3 \
+          -Wall \
+          -Wno-attributes \
+          $(EXTRA_CFLAGS)
+
+# Quic's own sources plus netty_jni_util.c (which lives outside SRC_DIR
+# because it is unpacked from the netty-jni-util artifact at build time).
+SRCS = $(wildcard $(SRC_DIR)/*.c)
+OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o) $(OBJ_DIR)/netty_jni_util.o
+
+all: $(LIB)
+
+# Final archive: own objects + netty_jni_util.o. BoringSSL/quiche embedding
+# is deferred (see header comment); downstream consumers link those.
+$(LIB): $(OBJS)
+	mkdir -p $(LIB_DIR)
+	$(AR) rcs $@ $(OBJS)
+	$(RANLIB) $@
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	mkdir -p $(OBJ_DIR)
+	$(CC) -o $@ -c $< $(CFLAGS)
+
+$(OBJ_DIR)/netty_jni_util.o: $(JNI_UTIL_DIR)/netty_jni_util.c
+	mkdir -p $(OBJ_DIR)
+	$(CC) -o $@ -c $< $(CFLAGS)
+
+clean:
+	rm -rf $(LIB_DIR) $(OBJ_DIR)
+
+.PHONY: all clean
