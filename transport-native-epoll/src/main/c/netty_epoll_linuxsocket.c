@@ -36,6 +36,10 @@
 #include "netty_unix_socket.h"
 #include "netty_unix_util.h"
 
+#ifdef NETTY_BUILD_STATIC
+#include "netty_jni_static.h"
+#endif
+
 #define LINUXSOCKET_CLASSNAME "io/netty/channel/epoll/LinuxSocket"
 
 // TCP_FASTOPEN is defined in linux 3.7. We define this here so older kernels can compile.
@@ -908,6 +912,66 @@ error:
 }
 
 // JNI Method Registration Table End
+
+#ifdef NETTY_BUILD_STATIC
+// Static-JNI aliases — emit Java_io_netty_channel_epoll_LinuxSocket_<method> as
+// default-visibility entries pointing at the existing internal functions, so a
+// JVM that resolves natives via dlsym on the program image (the static-link
+// path) finds them directly. Mirrors the JNINativeMethod table above.
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, newVSockStreamFd,       netty_epoll_linuxsocket_newVSockStreamFd)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, bindVSock,              netty_epoll_linuxsocket_bindVSock)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, connectVSock,           netty_epoll_linuxsocket_connectVSock)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, remoteVSockAddress,     netty_epoll_linuxsocket_remoteVSockAddress)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, localVSockAddress,      netty_epoll_linuxsocket_localVSockAddress)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, setTimeToLive,          netty_epoll_linuxsocket_setTimeToLive)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, getTimeToLive,          netty_epoll_linuxsocket_getTimeToLive)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, setInterface,           netty_epoll_linuxsocket_setInterface)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, getInterface,           netty_epoll_linuxsocket_getInterface)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, setIpMulticastLoop,     netty_epoll_linuxsocket_setIpMulticastLoop)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, getIpMulticastLoop,     netty_epoll_linuxsocket_getIpMulticastLoop)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, setTcpCork,             netty_epoll_linuxsocket_setTcpCork)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, setSoBusyPoll,          netty_epoll_linuxsocket_setSoBusyPoll)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, setTcpQuickAck,         netty_epoll_linuxsocket_setTcpQuickAck)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, setTcpDeferAccept,      netty_epoll_linuxsocket_setTcpDeferAccept)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, setTcpNotSentLowAt,     netty_epoll_linuxsocket_setTcpNotSentLowAt)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, isTcpCork,              netty_epoll_linuxsocket_isTcpCork)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, getSoBusyPoll,          netty_epoll_linuxsocket_getSoBusyPoll)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, getTcpDeferAccept,      netty_epoll_linuxsocket_getTcpDeferAccept)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, getTcpNotSentLowAt,     netty_epoll_linuxsocket_getTcpNotSentLowAt)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, isTcpQuickAck,          netty_epoll_linuxsocket_isTcpQuickAck)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, setTcpFastOpen,         netty_epoll_linuxsocket_setTcpFastOpen)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, setTcpKeepIdle,         netty_epoll_linuxsocket_setTcpKeepIdle)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, setTcpKeepIntvl,        netty_epoll_linuxsocket_setTcpKeepIntvl)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, setTcpKeepCnt,          netty_epoll_linuxsocket_setTcpKeepCnt)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, setTcpUserTimeout,      netty_epoll_linuxsocket_setTcpUserTimeout)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, setIpBindAddressNoPort, netty_epoll_linuxsocket_setIpBindAddressNoPort)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, setIpMulticastAll,      netty_epoll_linuxsocket_setIpMulticastAll)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, setIpFreeBind,          netty_epoll_linuxsocket_setIpFreeBind)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, setIpTransparent,       netty_epoll_linuxsocket_setIpTransparent)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, setIpRecvOrigDestAddr,  netty_epoll_linuxsocket_setIpRecvOrigDestAddr)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, getTcpKeepIdle,         netty_epoll_linuxsocket_getTcpKeepIdle)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, getTcpKeepIntvl,        netty_epoll_linuxsocket_getTcpKeepIntvl)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, getTcpKeepCnt,          netty_epoll_linuxsocket_getTcpKeepCnt)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, getTcpUserTimeout,      netty_epoll_linuxsocket_getTcpUserTimeout)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, isIpBindAddressNoPort,  netty_epoll_linuxsocket_isIpBindAddressNoPort)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, isIpMulticastAll,       netty_epoll_linuxsocket_isIpMulticastAll)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, isIpFreeBind,           netty_epoll_linuxsocket_isIpFreeBind)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, isIpTransparent,        netty_epoll_linuxsocket_isIpTransparent)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, isIpRecvOrigDestAddr,   netty_epoll_linuxsocket_isIpRecvOrigDestAddr)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, getTcpInfo,             netty_epoll_linuxsocket_getTcpInfo)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, setTcpMd5Sig,           netty_epoll_linuxsocket_setTcpMd5Sig)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, joinGroup,              netty_epoll_linuxsocket_joinGroup)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, joinSsmGroup,           netty_epoll_linuxsocket_joinSsmGroup)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, leaveGroup,             netty_epoll_linuxsocket_leaveGroup)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, leaveSsmGroup,          netty_epoll_linuxsocket_leaveSsmGroup)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, isUdpGro,               netty_epoll_linuxsocket_isUdpGro)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, setUdpGro,              netty_epoll_linuxsocket_setUdpGro)
+
+// Dynamically registered methods — same Java class, signature is computed at
+// runtime, but the symbol name only depends on the method name.
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, getPeerCredentials, netty_epoll_linuxsocket_getPeerCredentials)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_LinuxSocket, sendFile,           netty_epoll_linuxsocket_sendFile)
+#endif
 
 // IMPORTANT: If you add any NETTY_JNI_UTIL_LOAD_CLASS or NETTY_JNI_UTIL_FIND_CLASS calls you also need to update
 //            Native to reflect that.
