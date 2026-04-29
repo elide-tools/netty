@@ -1,0 +1,63 @@
+# GNU Makefile for the static-archive build of transport-native-kqueue.
+# Hand-rolled (mirrors transport-native-unix-common/Makefile pattern) so the
+# static-JNI build can run under different CFLAGS than libtool's shared build.
+#
+# Inputs (set by the antrun execution that invokes this Makefile):
+#   CC                       - compiler; default clang
+#   AR                       - archiver; default llvm-ar
+#   RANLIB                   - ranlib; default llvm-ranlib
+#   JNI_PLATFORM             - "darwin" | "linux"
+#   LIB_DIR                  - output directory for the .a
+#   OBJ_DIR                  - intermediate .o dir; defaults to $(LIB_DIR)/obj
+#   LIB_NAME                 - basename of the lib (e.g. libnetty_transport_native_kqueue_aarch_64)
+#   SRC_DIR                  - directory containing the netty_kqueue_*.c sources
+#   UNIX_COMMON_INCLUDE_DIR  - unix-common's unpacked include dir (provides netty_unix_*.h, netty_jni_util.h)
+#   UNIX_COMMON_AR           - unix-common's unpacked static archive (provides netty_unix_*.o, netty_jni_util.o)
+#   EXTRA_CFLAGS             - additional CFLAGS appended last
+
+CC      ?= clang
+AR      ?= llvm-ar
+RANLIB  ?= llvm-ranlib
+OBJ_DIR ?= $(LIB_DIR)/obj
+
+JNI_INCLUDE_DIR = $(JAVA_HOME)/include
+JNI_INCLUDES    = -I$(JNI_INCLUDE_DIR) -I$(JNI_INCLUDE_DIR)/$(JNI_PLATFORM)
+
+LIB = $(LIB_DIR)/$(LIB_NAME).a
+
+CFLAGS := $(JNI_INCLUDES) \
+          -I$(SRC_DIR) \
+          -I$(UNIX_COMMON_INCLUDE_DIR) \
+          -DNETTY_BUILD_STATIC \
+          -fPIC \
+          -fvisibility=hidden \
+          -flto=thin \
+          -O3 \
+          -Wall \
+          -Wno-attributes \
+          $(EXTRA_CFLAGS)
+
+SRCS = $(wildcard $(SRC_DIR)/*.c)
+OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+
+all: $(LIB)
+
+# Final archive: own objects + unix-common's pre-built objects so the .a is
+# self-contained for downstream static linking.
+$(LIB): $(OBJS) | $(OBJ_DIR)/unix-common
+	mkdir -p $(LIB_DIR)
+	cd $(OBJ_DIR)/unix-common && $(AR) x $(UNIX_COMMON_AR)
+	$(AR) rcs $@ $(OBJS) $(OBJ_DIR)/unix-common/*.o
+	$(RANLIB) $@
+
+$(OBJ_DIR)/unix-common:
+	mkdir -p $@
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	mkdir -p $(OBJ_DIR)
+	$(CC) -o $@ -c $< $(CFLAGS)
+
+clean:
+	rm -rf $(LIB_DIR) $(OBJ_DIR)
+
+.PHONY: all clean
