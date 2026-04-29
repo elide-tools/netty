@@ -36,6 +36,10 @@
 #include "netty_unix_socket.h"
 #include "netty_unix_util.h"
 
+#ifdef NETTY_BUILD_STATIC
+#include "netty_jni_static.h"
+#endif
+
 #define LINUXSOCKET_CLASSNAME "io/netty/channel/uring/LinuxSocket"
 
 // TCP_FASTOPEN is defined in linux 3.7. We define this here so older kernels can compile.
@@ -771,6 +775,57 @@ error:
 }
 
 // JNI Method Registration Table End
+
+#ifdef NETTY_BUILD_STATIC
+// Static-JNI aliases — emit Java_<class>_<method> as default-visibility entries
+// pointing at the existing internal functions, so a JVM that resolves natives
+// via dlsym on the program image (the static-link path) finds them directly.
+// Mirrors the JNINativeMethod tables above; keep in sync when methods change.
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, setTimeToLive,         netty_io_uring_linuxsocket_setTimeToLive)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, getTimeToLive,         netty_io_uring_linuxsocket_getTimeToLive)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, setInterface,          netty_io_uring_linuxsocket_setInterface)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, getInterface,          netty_io_uring_linuxsocket_getInterface)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, setIpMulticastLoop,    netty_io_uring_linuxsocket_setIpMulticastLoop)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, getIpMulticastLoop,    netty_io_uring_linuxsocket_getIpMulticastLoop)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, makeBlocking,          netty_io_uring_linuxsocket_makeBlocking)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, setTcpCork,            netty_io_uring_linuxsocket_setTcpCork)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, setSoBusyPoll,         netty_io_uring_linuxsocket_setSoBusyPoll)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, setTcpQuickAck,        netty_io_uring_linuxsocket_setTcpQuickAck)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, setTcpDeferAccept,     netty_io_uring_linuxsocket_setTcpDeferAccept)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, setTcpNotSentLowAt,    netty_io_uring_linuxsocket_setTcpNotSentLowAt)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, isTcpCork,             netty_io_uring_linuxsocket_isTcpCork)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, getSoBusyPoll,         netty_io_uring_linuxsocket_getSoBusyPoll)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, getTcpDeferAccept,     netty_io_uring_linuxsocket_getTcpDeferAccept)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, getTcpNotSentLowAt,    netty_io_uring_linuxsocket_getTcpNotSentLowAt)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, isTcpQuickAck,         netty_io_uring_linuxsocket_isTcpQuickAck)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, setTcpFastOpen,        netty_io_uring_linuxsocket_setTcpFastOpen)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, setTcpFastOpenConnect, netty_io_uring_linuxsocket_setTcpFastOpenConnect)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, isTcpFastOpenConnect,  netty_io_uring_linuxsocket_isTcpFastOpenConnect)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, setTcpKeepIdle,        netty_io_uring_linuxsocket_setTcpKeepIdle)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, setTcpKeepIntvl,       netty_io_uring_linuxsocket_setTcpKeepIntvl)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, setTcpKeepCnt,         netty_io_uring_linuxsocket_setTcpKeepCnt)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, setTcpUserTimeout,     netty_io_uring_linuxsocket_setTcpUserTimeout)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, setIpFreeBind,         netty_io_uring_linuxsocket_setIpFreeBind)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, setIpTransparent,      netty_io_uring_linuxsocket_setIpTransparent)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, setIpRecvOrigDestAddr, netty_io_uring_linuxsocket_setIpRecvOrigDestAddr)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, setIpMulticastAll,     netty_io_uring_linuxsocket_setIpMulticastAll)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, getTcpKeepIdle,        netty_io_uring_linuxsocket_getTcpKeepIdle)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, getTcpKeepIntvl,       netty_io_uring_linuxsocket_getTcpKeepIntvl)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, getTcpKeepCnt,         netty_io_uring_linuxsocket_getTcpKeepCnt)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, getTcpUserTimeout,     netty_io_uring_linuxsocket_getTcpUserTimeout)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, isIpFreeBind,          netty_io_uring_linuxsocket_isIpFreeBind)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, isIpTransparent,       netty_io_uring_linuxsocket_isIpTransparent)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, isIpRecvOrigDestAddr,  netty_io_uring_linuxsocket_isIpRecvOrigDestAddr)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, isIpMulticastAll,      netty_io_uring_linuxsocket_isIpMulticastAll)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, getTcpInfo,            netty_io_uring_linuxsocket_getTcpInfo)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, setTcpMd5Sig,          netty_io_uring_linuxsocket_setTcpMd5Sig)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, joinGroup,             netty_io_uring_linuxsocket_joinGroup)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, joinSsmGroup,          netty_io_uring_linuxsocket_joinSsmGroup)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, leaveGroup,            netty_io_uring_linuxsocket_leaveGroup)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, leaveSsmGroup,         netty_io_uring_linuxsocket_leaveSsmGroup)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, setUdpGro,             netty_epoll_linuxsocket_setUdpGro)
+NETTY_JNI_ALIAS(io_netty_channel_uring_LinuxSocket, getPeerCredentials,    netty_io_uring_linuxsocket_getPeerCredentials)
+#endif
 
 jint netty_io_uring_linuxsocket_JNI_OnLoad(JNIEnv* env, const char* packagePrefix) {
     int ret = JNI_ERR;
