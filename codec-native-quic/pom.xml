@@ -130,7 +130,47 @@
         <extraConfigureArg>MACOSX_DEPLOYMENT_TARGET=${macosxDeploymentTarget}</extraConfigureArg>
         <bundleNativeCode>META-INF/native/lib${jniLibName}.jnilib;osname=macos;osname=macosx;processor=${os.detected.arch}</bundleNativeCode>
         <skipStaticJar>false</skipStaticJar>
+        <!-- Static-archive built by the Makefile.static below, NOT libtool. The archive embeds
+             only quic's own .o files (plus netty_jni_util.o); BoringSSL/quiche embedding is
+             deferred and downstream consumers link those separately. -->
+        <staticLib.archivePath>${project.build.directory}/native-static/lib${staticLib.libname}.a</staticLib.archivePath>
       </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <!-- Build the static-archive under different CFLAGS than libtool's shared build:
+                   compile every C source with -DNETTY_BUILD_STATIC -DNETTY_QUIC_BUILD_STATIC
+                   -flto=thin -fvisibility=hidden, then archive with netty_jni_util.o. Output
+                   lands at ${staticLib.archivePath} where the parent's static-jar antrun
+                   reads it. Runs at prepare-package so the parent's package-phase static-jar
+                   antrun finds the archive ready. -->
+              <execution>
+                <id>build-static-archive</id>
+                <phase>prepare-package</phase>
+                <goals><goal>run</goal></goals>
+                <configuration>
+                  <skip>${skipStaticJar}</skip>
+                  <target>
+                    <exec executable="make" dir="${project.basedir}" failonerror="true">
+                      <arg value="-f" />
+                      <arg value="src/main/c/Makefile.static" />
+                      <arg value="JNI_PLATFORM=darwin" />
+                      <arg value="LIB_DIR=${project.build.directory}/native-static" />
+                      <arg value="LIB_NAME=lib${staticLib.libname}" />
+                      <arg value="SRC_DIR=${nativeSourceDirectory}" />
+                      <arg value="JNI_UTIL_DIR=${jniUtilIncludeDir}" />
+                      <arg value="BORINGSSL_INCLUDE_DIR=${boringsslHomeIncludeDir}" />
+                      <arg value="QUICHE_INCLUDE_DIR=${quicheHomeIncludeDir}" />
+                    </exec>
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
     <profile>
       <id>mac-m1-cross-compile</id>
@@ -1140,8 +1180,6 @@
                 <configureArg>${extraConfigureArg}</configureArg>
                 <configureArg>${extraConfigureArg2}</configureArg>
                 <configureArg>--libdir=${project.build.directory}/native-build/target/lib</configureArg>
-                <configureArg>--enable-static</configureArg>
-                <configureArg>--with-pic</configureArg>
               </configureArgs>
             </configuration>
             <goals>
