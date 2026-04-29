@@ -784,6 +784,7 @@
     <skipStaticJar>true</skipStaticJar>
     <staticLib.classifier>${jni.classifier}-static</staticLib.classifier>
     <staticLib.includeDir>${nativeSourceDirectory}</staticLib.includeDir>
+    <staticLib.archivePath>${project.build.directory}/native-build/.libs/lib${staticLib.libname}.a</staticLib.archivePath>
   </properties>
 
   <modules>
@@ -2129,12 +2130,12 @@
               <configuration>
                 <skip>${skipStaticJar}</skip>
                 <target>
-                  <fail message="Expected static archive missing: ${project.build.directory}/native-build/.libs/lib${staticLib.libname}.a">
-                    <condition><not><available file="${project.build.directory}/native-build/.libs/lib${staticLib.libname}.a" /></not></condition>
+                  <fail message="Expected static archive missing: ${staticLib.archivePath}">
+                    <condition><not><available file="${staticLib.archivePath}" /></not></condition>
                   </fail>
                   <mkdir dir="${project.build.directory}/static-jar-work/META-INF/native/lib" />
                   <mkdir dir="${project.build.directory}/static-jar-work/META-INF/native/include" />
-                  <copy file="${project.build.directory}/native-build/.libs/lib${staticLib.libname}.a"
+                  <copy file="${staticLib.archivePath}"
                         todir="${project.build.directory}/static-jar-work/META-INF/native/lib" />
                   <copy todir="${project.build.directory}/static-jar-work/META-INF/native/include" failonerror="false">
                     <fileset dir="${staticLib.includeDir}" includes="*.h" />

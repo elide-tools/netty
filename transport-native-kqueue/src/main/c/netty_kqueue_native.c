@@ -40,6 +40,7 @@
 
 // Add define if NETTY_BUILD_STATIC is defined so it is picked up in netty_jni_util.c
 #ifdef NETTY_BUILD_STATIC
+#include "netty_jni_static.h"
 #define NETTY_JNI_UTIL_BUILD_STATIC
 #endif
 
@@ -366,6 +367,40 @@ static const JNINativeMethod fixed_method_table[] = {
 };
 static const jint fixed_method_table_size = sizeof(fixed_method_table) / sizeof(fixed_method_table[0]);
 // JNI Method Registration Table End
+
+#ifdef NETTY_BUILD_STATIC
+// Static-JNI aliases — emit Java_<class>_<method> as default-visibility entries
+// pointing at the existing internal functions, so a JVM that resolves natives
+// via dlsym on the program image (the static-link path) finds them directly.
+// Mirrors the JNINativeMethod tables above; keep in sync when methods change.
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, evfiltRead,       netty_kqueue_native_evfiltRead)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, evfiltWrite,      netty_kqueue_native_evfiltWrite)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, evfiltUser,       netty_kqueue_native_evfiltUser)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, evfiltSock,       netty_kqueue_native_evfiltSock)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, evAdd,            netty_kqueue_native_evAdd)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, evEnable,         netty_kqueue_native_evEnable)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, evDisable,        netty_kqueue_native_evDisable)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, evDelete,         netty_kqueue_native_evDelete)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, evClear,          netty_kqueue_native_evClear)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, evEOF,            netty_kqueue_native_evEOF)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, evError,          netty_kqueue_native_evError)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, noteReadClosed,   netty_kqueue_native_noteReadClosed)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, noteConnReset,    netty_kqueue_native_noteConnReset)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, noteDisconnected, netty_kqueue_native_noteDisconnected)
+
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_Native, kqueueCreate,           netty_kqueue_native_kqueueCreate)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_Native, keventTriggerUserEvent, netty_kqueue_native_keventTriggerUserEvent)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_Native, keventAddUserEvent,     netty_kqueue_native_keventAddUserEvent)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_Native, keventWait,             netty_kqueue_native_keventWait)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_Native, sizeofKEvent,           netty_kqueue_native_sizeofKEvent)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_Native, offsetofKEventIdent,    netty_kqueue_native_offsetofKEventIdent)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_Native, offsetofKEventFlags,    netty_kqueue_native_offsetofKEventFlags)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_Native, offsetofKEventFFlags,   netty_kqueue_native_offsetofKEventFFlags)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_Native, offsetofKEventFilter,   netty_kqueue_native_offsetofKEventFilter)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_Native, offsetofKeventData,     netty_kqueue_native_offsetofKeventData)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_Native, offsetofKeventUdata,    netty_kqueue_native_offsetofKeventUdata)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_Native, registerUnix,           netty_kqueue_native_registerUnix)
+#endif
 
 // IMPORTANT: If you add any NETTY_JNI_UTIL_LOAD_CLASS or NETTY_JNI_UTIL_FIND_CLASS calls you also need to update
 //            Native to reflect that.
