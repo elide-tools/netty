@@ -13,12 +13,15 @@
 #   SRC_DIR                  - directory containing the netty_kqueue_*.c sources
 #   UNIX_COMMON_INCLUDE_DIR  - unix-common's unpacked include dir (provides netty_unix_*.h, netty_jni_util.h)
 #   UNIX_COMMON_AR           - unix-common's unpacked static archive (provides netty_unix_*.o, netty_jni_util.o)
+#   LTO_FLAGS                - LTO flags; defaults to clang-style "-flto=thin". Cross-compile profiles
+#                              that fall back to gcc override this (gcc rejects "-flto=thin").
 #   EXTRA_CFLAGS             - additional CFLAGS appended last
 
-CC      ?= clang
-AR      ?= llvm-ar
-RANLIB  ?= llvm-ranlib
-OBJ_DIR ?= $(LIB_DIR)/obj
+CC        ?= clang
+AR        ?= llvm-ar
+RANLIB    ?= llvm-ranlib
+OBJ_DIR   ?= $(LIB_DIR)/obj
+LTO_FLAGS ?= -flto=thin
 
 JNI_INCLUDE_DIR = $(JAVA_HOME)/include
 JNI_INCLUDES    = -I$(JNI_INCLUDE_DIR) -I$(JNI_INCLUDE_DIR)/$(JNI_PLATFORM)
@@ -31,7 +34,7 @@ CFLAGS := $(JNI_INCLUDES) \
           -DNETTY_BUILD_STATIC \
           -fPIC \
           -fvisibility=hidden \
-          -flto=thin \
+          $(LTO_FLAGS) \
           -O3 \
           -Wall \
           -Wno-attributes \

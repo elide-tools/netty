@@ -276,6 +276,7 @@
         <javaModuleNameClassifier>${os.detected.name}.aarch_64</javaModuleNameClassifier>
         <staticLib.libname>netty_transport_native_epoll_aarch_64</staticLib.libname>
         <skipStaticJar>false</skipStaticJar>
+        <staticLib.archivePath>${project.build.directory}/native-static/lib${staticLib.libname}.a</staticLib.archivePath>
       </properties>
       <build>
         <pluginManagement>
@@ -370,8 +371,6 @@
                     <configureArg>--libdir=${project.build.directory}/native-build/target/lib</configureArg>
                     <configureArg>--host=aarch64-linux-gnu</configureArg>
                     <configureArg>CC=aarch64-none-linux-gnu-gcc</configureArg>
-                    <configureArg>--enable-static</configureArg>
-                    <configureArg>--with-pic</configureArg>
                   </configureArgs>
                 </configuration>
                 <goals>
@@ -381,6 +380,40 @@
               </execution>
             </executions>
           </plugin>
+
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>build-static-archive</id>
+                <phase>prepare-package</phase>
+                <goals><goal>run</goal></goals>
+                <configuration>
+                  <skip>${skipStaticJar}</skip>
+                  <target>
+                    <!-- Cross-compile fallback: pass the gcc cross-compiler (clang cross is not
+                         provisioned in the release toolchain). LTO is disabled because gcc does
+                         not accept clang's "-flto=thin"; the static archive is otherwise the same. -->
+                    <exec executable="make" dir="${project.basedir}" failonerror="true">
+                      <arg value="-f" />
+                      <arg value="src/main/c/Makefile.static" />
+                      <arg value="JNI_PLATFORM=linux" />
+                      <arg value="CC=aarch64-none-linux-gnu-gcc" />
+                      <arg value="AR=aarch64-none-linux-gnu-ar" />
+                      <arg value="RANLIB=aarch64-none-linux-gnu-ranlib" />
+                      <arg value="LTO_FLAGS=" />
+                      <arg value="LIB_DIR=${project.build.directory}/native-static" />
+                      <arg value="LIB_NAME=lib${staticLib.libname}" />
+                      <arg value="SRC_DIR=${nativeSourceDirectory}" />
+                      <arg value="UNIX_COMMON_INCLUDE_DIR=${unix.common.include.unpacked.dir}" />
+                      <arg value="UNIX_COMMON_AR=${unix.common.lib.unpacked.dir}/lib${unix.common.lib.name}.a" />
+                    </exec>
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
           <plugin>
             <groupId>org.apache.felix</groupId>
             <artifactId>maven-bundle-plugin</artifactId>
@@ -453,6 +486,7 @@
         <javaModuleNameClassifier>${os.detected.name}.riscv64</javaModuleNameClassifier>
         <staticLib.libname>netty_transport_native_epoll_riscv64</staticLib.libname>
         <skipStaticJar>false</skipStaticJar>
+        <staticLib.archivePath>${project.build.directory}/native-static/lib${staticLib.libname}.a</staticLib.archivePath>
       </properties>
       <build>
         <pluginManagement>
@@ -553,8 +587,6 @@
                     <configureArg>--libdir=${project.build.directory}/native-build/target/lib</configureArg>
                     <configureArg>--host=riscv64-linux-gnu</configureArg>
                     <configureArg>CC=riscv64-linux-gnu-gcc</configureArg>
-                    <configureArg>--enable-static</configureArg>
-                    <configureArg>--with-pic</configureArg>
                   </configureArgs>
                 </configuration>
                 <goals>
@@ -564,6 +596,40 @@
               </execution>
             </executions>
           </plugin>
+
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>build-static-archive</id>
+                <phase>prepare-package</phase>
+                <goals><goal>run</goal></goals>
+                <configuration>
+                  <skip>${skipStaticJar}</skip>
+                  <target>
+                    <!-- Cross-compile fallback: pass the gcc cross-compiler (clang cross is not
+                         provisioned in the release toolchain). LTO is disabled because gcc does
+                         not accept clang's "-flto=thin"; the static archive is otherwise the same. -->
+                    <exec executable="make" dir="${project.basedir}" failonerror="true">
+                      <arg value="-f" />
+                      <arg value="src/main/c/Makefile.static" />
+                      <arg value="JNI_PLATFORM=linux" />
+                      <arg value="CC=riscv64-linux-gnu-gcc" />
+                      <arg value="AR=riscv64-linux-gnu-ar" />
+                      <arg value="RANLIB=riscv64-linux-gnu-ranlib" />
+                      <arg value="LTO_FLAGS=" />
+                      <arg value="LIB_DIR=${project.build.directory}/native-static" />
+                      <arg value="LIB_NAME=lib${staticLib.libname}" />
+                      <arg value="SRC_DIR=${nativeSourceDirectory}" />
+                      <arg value="UNIX_COMMON_INCLUDE_DIR=${unix.common.include.unpacked.dir}" />
+                      <arg value="UNIX_COMMON_AR=${unix.common.lib.unpacked.dir}/lib${unix.common.lib.name}.a" />
+                    </exec>
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
           <plugin>
             <groupId>org.apache.felix</groupId>
             <artifactId>maven-bundle-plugin</artifactId>
