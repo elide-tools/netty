@@ -24,6 +24,10 @@
 #include "netty_unix_jni.h"
 #include "netty_unix_util.h"
 
+#ifdef NETTY_BUILD_STATIC
+#include "netty_jni_static.h"
+#endif
+
 #define EVENT_ARRAY_CLASSNAME "io/netty/channel/kqueue/KQueueEventArray"
 
 static void netty_kqueue_eventarray_evSet(JNIEnv* env, jclass clzz, jlong keventAddress, jint ident, jshort filter, jshort flags, jint fflags, jlong data, jlong udata) {
@@ -37,6 +41,10 @@ static const JNINativeMethod fixed_method_table[] = {
 static const jint fixed_method_table_size = sizeof(fixed_method_table) / sizeof(fixed_method_table[0]);
 
 // JNI Method Registration Table End
+
+#ifdef NETTY_BUILD_STATIC
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueEventArray, evSet, netty_kqueue_eventarray_evSet)
+#endif
 
 // IMPORTANT: If you add any NETTY_JNI_UTIL_LOAD_CLASS or NETTY_JNI_UTIL_FIND_CLASS calls you also need to update
 //            Native to reflect that.

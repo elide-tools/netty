@@ -33,6 +33,10 @@
 #include "netty_unix_socket.h"
 #include "netty_unix_util.h"
 
+#ifdef NETTY_BUILD_STATIC
+#include "netty_jni_static.h"
+#endif
+
 #define BSDSOCKET_CLASSNAME "io/netty/channel/kqueue/BsdSocket"
 
 // Those are initialized in the init(...) method and cached for performance reasons
@@ -345,6 +349,28 @@ error:
 }
 
 // JNI Method Registration Table End
+
+#ifdef NETTY_BUILD_STATIC
+// Static-JNI aliases for bsdsocket targets. The first four belong to the
+// KQueueStaticallyReferencedJniMethods Java class but their C functions live
+// here, so the aliases must too (Mach-O same-TU constraint).
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, connectResumeOnReadWrite, netty_kqueue_bsdsocket_connectResumeOnReadWrite)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, connectDataIdempotent,    netty_kqueue_bsdsocket_connectDataIdempotent)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, fastOpenClient,           netty_kqueue_bsdsocket_fastOpenClient)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, fastOpenServer,           netty_kqueue_bsdsocket_fastOpenServer)
+
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_BsdSocket, setAcceptFilter,    netty_kqueue_bsdsocket_setAcceptFilter)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_BsdSocket, setTcpNoPush,       netty_kqueue_bsdsocket_setTcpNoPush)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_BsdSocket, setSndLowAt,        netty_kqueue_bsdsocket_setSndLowAt)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_BsdSocket, setTcpFastOpen,     netty_kqueue_bsdsocket_setTcpFastOpen)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_BsdSocket, getAcceptFilter,    netty_kqueue_bsdsocket_getAcceptFilter)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_BsdSocket, getTcpNoPush,       netty_kqueue_bsdsocket_getTcpNoPush)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_BsdSocket, getSndLowAt,        netty_kqueue_bsdsocket_getSndLowAt)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_BsdSocket, isTcpFastOpen,      netty_kqueue_bsdsocket_isTcpFastOpen)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_BsdSocket, connectx,           netty_kqueue_bsdsocket_connectx)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_BsdSocket, sendFile,           netty_kqueue_bsdsocket_sendFile)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_BsdSocket, getPeerCredentials, netty_kqueue_bsdsocket_getPeerCredentials)
+#endif
 
 // IMPORTANT: If you add any NETTY_JNI_UTIL_LOAD_CLASS or NETTY_JNI_UTIL_FIND_CLASS calls you also need to update
 //            Native to reflect that.
