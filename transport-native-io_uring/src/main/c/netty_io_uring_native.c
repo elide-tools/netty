@@ -53,8 +53,9 @@
 #define UDP_SEGMENT 103
 #endif
 
-// Add define if NETTY_IO_URING_BUILD_STATIC is defined so it is picked up in netty_jni_util.c
-#ifdef NETTY_IO_URING_BUILD_STATIC
+// Add define if NETTY_BUILD_STATIC is defined so it is picked up in netty_jni_util.c
+#ifdef NETTY_BUILD_STATIC
+#include "netty_jni_static.h"
 #define NETTY_JNI_UTIL_BUILD_STATIC
 #endif
 
@@ -870,6 +871,99 @@ static const jint method_table_size =
     sizeof(method_table) / sizeof(method_table[0]);
 // JNI Method Registration Table End
 
+#ifdef NETTY_BUILD_STATIC
+// Static-JNI aliases — emit Java_<class>_<method> as default-visibility entries
+// pointing at the existing internal functions, so a JVM that resolves natives
+// via dlsym on the program image (the static-link path) finds them directly.
+// Mirrors the JNINativeMethod tables above; keep in sync when methods change.
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, sockNonblock,                      netty_io_uring_sockNonblock)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, sockCloexec,                       netty_io_uring_sockCloexec)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, afInet,                            netty_io_uring_afInet)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, afInet6,                           netty_io_uring_afInet6)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, afUnix,                            netty_io_uring_afUnix)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, sizeofSockaddrIn,                  netty_io_uring_sizeofSockaddrIn)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, sizeofSockaddrIn6,                 netty_io_uring_sizeofSockaddrIn6)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, pageSize,                          netty_io_uring_pageSize)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, sockaddrInOffsetofSinFamily,       netty_io_uring_sockaddrInOffsetofSinFamily)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, sockaddrInOffsetofSinPort,         netty_io_uring_sockaddrInOffsetofSinPort)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, sockaddrInOffsetofSinAddr,         netty_io_uring_sockaddrInOffsetofSinAddr)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, inAddressOffsetofSAddr,            netty_io_uring_inAddressOffsetofSAddr)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, sockaddrIn6OffsetofSin6Family,     netty_io_uring_sockaddrIn6OffsetofSin6Family)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, sockaddrIn6OffsetofSin6Port,       netty_io_uring_sockaddrIn6OffsetofSin6Port)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, sockaddrIn6OffsetofSin6Flowinfo,   netty_io_uring_sockaddrIn6OffsetofSin6Flowinfo)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, sockaddrIn6OffsetofSin6Addr,       netty_io_uring_sockaddrIn6OffsetofSin6Addr)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, sockaddrIn6OffsetofSin6ScopeId,    netty_io_uring_sockaddrIn6OffsetofSin6ScopeId)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, in6AddressOffsetofS6Addr,          netty_io_uring_in6AddressOffsetofS6Addr)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, sizeofSockaddrStorage,             netty_io_uring_sizeofSockaddrStorage)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, sizeofSockaddrUn,                  netty_io_uring_sizeofSockaddrUn)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, sockaddrUnOffsetofSunFamily,       netty_io_uring_sockaddrUnOffsetofSunFamily)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, sockaddrUnOffsetofSunPath,         netty_io_uring_sockaddrUnOffsetofSunPath)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, maxSunPathLen,                     netty_io_uring_max_sun_path_len)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, sizeofSizeT,                       netty_io_uring_sizeofSizeT)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, sizeofIovec,                       netty_io_uring_sizeofIovec)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, cmsgSpace,                         netty_io_uring_cmsgSpace)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, cmsgSpaceForFd,                    netty_io_uring_cmsgSpace_for_fd)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, msgControlLenForFd,                netty_io_uring_msg_controllen_for_fd)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, cmsgLen,                           netty_io_uring_cmsgLen)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, cmsgLenForFd,                      netty_io_uring_cmsgLen_for_fd)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, iovecOffsetofIovBase,              netty_io_uring_iovecOffsetofIovBase)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, iovecOffsetofIovLen,               netty_io_uring_iovecOffsetofIovLen)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, sizeofMsghdr,                      netty_io_uring_sizeofMsghdr)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, msghdrOffsetofMsgName,             netty_io_uring_msghdrOffsetofMsgName)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, msghdrOffsetofMsgNamelen,          netty_io_uring_msghdrOffsetofMsgNamelen)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, msghdrOffsetofMsgIov,              netty_io_uring_msghdrOffsetofMsgIov)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, msghdrOffsetofMsgIovlen,           netty_io_uring_msghdrOffsetofMsgIovlen)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, msghdrOffsetofMsgControl,          netty_io_uring_msghdrOffsetofMsgControl)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, msghdrOffsetofMsgControllen,       netty_io_uring_msghdrOffsetofMsgControllen)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, msghdrOffsetofMsgFlags,            netty_io_uring_msghdrOffsetofMsgFlags)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, etime,                             netty_io_uring_etime)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, ecanceled,                         netty_io_uring_ecanceled)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, enobufs,                           netty_io_uring_enobufs)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, pollin,                            netty_io_uring_pollin)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, pollout,                           netty_io_uring_pollout)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, pollrdhup,                         netty_io_uring_pollrdhup)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, ioringEnterGetevents,              netty_io_uring_ioringEnterGetevents)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, iosqeAsync,                        netty_io_uring_iosqeAsync)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, iosqeLink,                         netty_io_uring_iosqeLink)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, iosqeDrain,                        netty_io_uring_iosqeDrain)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, iosqeBufferSelect,                 netty_io_uring_BufferSelect)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, msgDontwait,                       netty_io_uring_msgDontwait)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, msgFastopen,                       netty_io_uring_msgFastopen)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, solUdp,                            netty_io_uring_solUdp)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, solSocket,                         netty_io_uring_solSocket)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, udpSegment,                        netty_io_uring_udpSegment)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, scmRights,                         netty_io_uring_ScmRights)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, cmsghdrOffsetofCmsgLen,            netty_io_uring_cmsghdrOffsetofCmsgLen)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, cmsghdrOffsetofCmsgLevel,          netty_io_uring_cmsghdrOffsetofCmsgLevel)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, cmsghdrOffsetofCmsgType,           netty_io_uring_cmsghdrOffsetofCmsgType)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, ioUringBufferRingOffsetTail,       netty_io_uring_ioUringBufRingOffsetoftail)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, sizeofIoUringBuf,                  netty_io_uring_sizeofIoUringBuf)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, ioUringBufferOffsetAddr,           netty_io_uring_ioUringBufOffsetofaddr)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, ioUringBufferOffsetLen,            netty_io_uring_ioUringBufOffsetoflen)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, ioUringBufferOffsetBid,            netty_io_uring_ioUringBufOffsetofbid)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, tcpFastopenMode,                   netty_io_uring_tcpFastopenMode)
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, maxSkbFrags,                       netty_io_uring_maxSkbFrags)
+
+NETTY_JNI_ALIAS(io_netty_channel_uring_Native, ioUringSetupSupportsFlags,    netty_io_uring_setup_supports_flags)
+NETTY_JNI_ALIAS(io_netty_channel_uring_Native, ioUringSetup,                 netty_io_uring_setup)
+NETTY_JNI_ALIAS(io_netty_channel_uring_Native, ioUringRegisterIoWqMaxWorkers, netty_io_uring_register_iowq_max_workers)
+NETTY_JNI_ALIAS(io_netty_channel_uring_Native, ioUringRegisterEnableRings,   netty_io_uring_register_enable_rings)
+NETTY_JNI_ALIAS(io_netty_channel_uring_Native, ioUringRegisterRingFds,       netty_io_uring_register_ring_fds)
+NETTY_JNI_ALIAS(io_netty_channel_uring_Native, ioUringProbe0,                netty_io_uring_probe0)
+NETTY_JNI_ALIAS(io_netty_channel_uring_Native, ioUringExit,                  netty_io_uring_ring_buffer_exit)
+NETTY_JNI_ALIAS(io_netty_channel_uring_Native, createFile,                   netty_create_file)
+NETTY_JNI_ALIAS(io_netty_channel_uring_Native, ioUringEnter,                 netty_io_uring_enter)
+NETTY_JNI_ALIAS(io_netty_channel_uring_Native, blockingEventFd,              netty_epoll_native_blocking_event_fd)
+NETTY_JNI_ALIAS(io_netty_channel_uring_Native, eventFdWrite,                 netty_io_uring_eventFdWrite)
+NETTY_JNI_ALIAS(io_netty_channel_uring_Native, registerUnix,                 netty_io_uring_registerUnix)
+NETTY_JNI_ALIAS(io_netty_channel_uring_Native, cmsghdrData,                  netty_io_uring_cmsghdrData)
+NETTY_JNI_ALIAS(io_netty_channel_uring_Native, kernelVersion,                netty_io_uring_kernel_version)
+NETTY_JNI_ALIAS(io_netty_channel_uring_Native, getFd0,                       netty_io_uring_getFd0)
+NETTY_JNI_ALIAS(io_netty_channel_uring_Native, ioUringRegisterBufRing,       netty_io_uring_register_buf_ring)
+NETTY_JNI_ALIAS(io_netty_channel_uring_Native, ioUringUnRegisterBufRing,     netty_io_uring_unregister_buf_ring)
+NETTY_JNI_ALIAS(io_netty_channel_uring_Native, ioUringBufRingSize,           netty_io_uring_buf_ring_size)
+#endif
+
 static jint netty_iouring_native_JNI_OnLoad(JNIEnv* env, const char* packagePrefix) {
     int ret = JNI_ERR;
     int nativeRegistered = 0;
@@ -965,7 +1059,7 @@ JNIEXPORT void JNI_OnUnload_netty_transport_native_io_uring(JavaVM* vm, void* re
     netty_jni_util_JNI_OnUnload(vm, reserved, netty_iouring_native_JNI_OnUnload);
 }
 
-#ifndef NETTY_IO_URING_BUILD_STATIC
+#ifndef NETTY_BUILD_STATIC
 JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     return netty_jni_util_JNI_OnLoad(vm, reserved, LIBRARYNAME, netty_iouring_native_JNI_OnLoad);
 }
@@ -973,5 +1067,5 @@ JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved) {
 JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved) {
     netty_jni_util_JNI_OnUnload(vm, reserved, netty_iouring_native_JNI_OnUnload);
 }
-#endif /* NETTY_IO_URING_BUILD_STATIC */
+#endif /* NETTY_BUILD_STATIC */
 
