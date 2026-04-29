@@ -76,6 +76,14 @@
     <macosxDeploymentTarget />
     <bundleNativeCode />
     <crossCompile />
+    <!-- Static-JNI archive build (Makefile.static) inputs. Each platform-enabled
+         profile overrides staticLib.jniPlatform and (optionally) staticLib.extraCflags
+         / staticLib.cc; the shared build-static-archive antrun in this pom's main
+         <build><plugins> reads them. Default jniPlatform is linux because the only
+         host families supported by this prototype are linux and darwin. -->
+    <staticLib.jniPlatform>linux</staticLib.jniPlatform>
+    <staticLib.extraCflags />
+    <staticLib.cc>clang</staticLib.cc>
   </properties>
 
   <profiles>
@@ -130,47 +138,14 @@
         <extraConfigureArg>MACOSX_DEPLOYMENT_TARGET=${macosxDeploymentTarget}</extraConfigureArg>
         <bundleNativeCode>META-INF/native/lib${jniLibName}.jnilib;osname=macos;osname=macosx;processor=${os.detected.arch}</bundleNativeCode>
         <skipStaticJar>false</skipStaticJar>
-        <!-- Static-archive built by the Makefile.static below, NOT libtool. The archive embeds
+        <!-- Static-archive built by the Makefile.static, NOT libtool. The archive embeds
              only quic's own .o files (plus netty_jni_util.o); BoringSSL/quiche embedding is
-             deferred and downstream consumers link those separately. -->
+             deferred and downstream consumers link those separately. The shared
+             build-static-archive antrun in this pom's main <build><plugins> reads
+             these properties. -->
         <staticLib.archivePath>${project.build.directory}/native-static/lib${staticLib.libname}.a</staticLib.archivePath>
+        <staticLib.jniPlatform>darwin</staticLib.jniPlatform>
       </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-antrun-plugin</artifactId>
-            <executions>
-              <!-- Build the static-archive under different CFLAGS than libtool's shared build:
-                   compile every C source with -DNETTY_BUILD_STATIC -DNETTY_QUIC_BUILD_STATIC
-                   -flto=thin -fvisibility=hidden, then archive with netty_jni_util.o. Output
-                   lands at ${staticLib.archivePath} where the parent's static-jar antrun
-                   reads it. Runs at prepare-package so the parent's package-phase static-jar
-                   antrun finds the archive ready. -->
-              <execution>
-                <id>build-static-archive</id>
-                <phase>prepare-package</phase>
-                <goals><goal>run</goal></goals>
-                <configuration>
-                  <skip>${skipStaticJar}</skip>
-                  <target>
-                    <exec executable="make" dir="${project.basedir}" failonerror="true">
-                      <arg value="-f" />
-                      <arg value="src/main/c/Makefile.static" />
-                      <arg value="JNI_PLATFORM=darwin" />
-                      <arg value="LIB_DIR=${project.build.directory}/native-static" />
-                      <arg value="LIB_NAME=lib${staticLib.libname}" />
-                      <arg value="SRC_DIR=${nativeSourceDirectory}" />
-                      <arg value="JNI_UTIL_DIR=${jniUtilIncludeDir}" />
-                      <arg value="BORINGSSL_INCLUDE_DIR=${boringsslHomeIncludeDir}" />
-                      <arg value="QUICHE_INCLUDE_DIR=${quicheHomeIncludeDir}" />
-                    </exec>
-                  </target>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
     </profile>
     <profile>
       <id>mac-m1-cross-compile</id>
@@ -201,6 +176,10 @@
         <cargoTarget>--target=${quicheTarget}</cargoTarget>
         <quicheBuildDir>${quicheSourceDir}/target/${quicheTarget}/release</quicheBuildDir>
         <skipStaticJar>false</skipStaticJar>
+        <!-- Read by the shared build-static-archive antrun in main <build><plugins>. -->
+        <staticLib.archivePath>${project.build.directory}/native-static/lib${staticLib.libname}.a</staticLib.archivePath>
+        <staticLib.jniPlatform>darwin</staticLib.jniPlatform>
+        <staticLib.extraCflags>-target arm64-apple-macos11</staticLib.extraCflags>
       </properties>
     </profile>
     <profile>
@@ -232,6 +211,10 @@
         <cargoTarget>--target=${quicheTarget}</cargoTarget>
         <quicheBuildDir>${quicheSourceDir}/target/${quicheTarget}/release</quicheBuildDir>
         <skipStaticJar>false</skipStaticJar>
+        <!-- Read by the shared build-static-archive antrun in main <build><plugins>. -->
+        <staticLib.archivePath>${project.build.directory}/native-static/lib${staticLib.libname}.a</staticLib.archivePath>
+        <staticLib.jniPlatform>darwin</staticLib.jniPlatform>
+        <staticLib.extraCflags>-target x86_64-apple-macos10.13 -mmacosx-version-min=${macosxDeploymentTarget}</staticLib.extraCflags>
       </properties>
     </profile>
     <profile>
@@ -258,6 +241,9 @@
         <extraLdflags>-static-libstdc++ -l:libstdc++.a -Wl,--strip-debug -Wl,--exclude-libs,ALL -Wl,-lrt</extraLdflags>
         <bundleNativeCode>META-INF/native/lib${jniLibName}.so;osname=linux;processor=${os.detected.arch}</bundleNativeCode>
         <skipStaticJar>false</skipStaticJar>
+        <!-- Read by the shared build-static-archive antrun in main <build><plugins>. -->
+        <staticLib.archivePath>${project.build.directory}/native-static/lib${staticLib.libname}.a</staticLib.archivePath>
+        <staticLib.jniPlatform>linux</staticLib.jniPlatform>
       </properties>
       <dependencies>
         <dependency>
@@ -559,6 +545,12 @@
         <cargoTarget>--target=${quicheTarget}</cargoTarget>
         <quicheBuildDir>${quicheSourceDir}/target/${quicheTarget}/release</quicheBuildDir>
         <skipStaticJar>false</skipStaticJar>
+        <!-- Read by the shared build-static-archive antrun in main <build><plugins>.
+             linux-aarch64 cross-compile uses the GCC cross toolchain (matches the
+             aarch64-none-linux-gnu-gcc CC the libtool/cmake build sets above). -->
+        <staticLib.archivePath>${project.build.directory}/native-static/lib${staticLib.libname}.a</staticLib.archivePath>
+        <staticLib.jniPlatform>linux</staticLib.jniPlatform>
+        <staticLib.cc>aarch64-none-linux-gnu-gcc</staticLib.cc>
       </properties>
     </profile>
     <profile>
@@ -1068,6 +1060,37 @@
                   <!-- Exclude native lib and attribution for the jar without classifier-->
                   <zipfileset dir="${project.build.outputDirectory}" excludes="META-INF/versions/**,META-INF/native/**,META-INF/license/**,META-INF/NOTICE.txt,META-INF/LICENSE.txt" />
                 </copy>
+              </target>
+            </configuration>
+          </execution>
+          <!-- Build the static-archive under different CFLAGS than libtool's shared build:
+               compile every C source with -DNETTY_BUILD_STATIC -DNETTY_QUIC_BUILD_STATIC
+               -flto=thin -fvisibility=hidden, then archive with netty_jni_util.o. Output
+               lands at ${staticLib.archivePath} where the parent's static-jar antrun
+               reads it. Runs at prepare-package so the parent's package-phase static-jar
+               antrun finds the archive ready. Single shared execution (Option B) — each
+               platform-enabled profile sets staticLib.jniPlatform / staticLib.extraCflags
+               / staticLib.cc as needed. -->
+          <execution>
+            <id>build-static-archive</id>
+            <phase>prepare-package</phase>
+            <goals><goal>run</goal></goals>
+            <configuration>
+              <skip>${skipStaticJar}</skip>
+              <target>
+                <exec executable="make" dir="${project.basedir}" failonerror="true">
+                  <arg value="-f" />
+                  <arg value="src/main/c/Makefile.static" />
+                  <arg value="JNI_PLATFORM=${staticLib.jniPlatform}" />
+                  <arg value="LIB_DIR=${project.build.directory}/native-static" />
+                  <arg value="LIB_NAME=lib${staticLib.libname}" />
+                  <arg value="SRC_DIR=${nativeSourceDirectory}" />
+                  <arg value="JNI_UTIL_DIR=${jniUtilIncludeDir}" />
+                  <arg value="BORINGSSL_INCLUDE_DIR=${boringsslHomeIncludeDir}" />
+                  <arg value="QUICHE_INCLUDE_DIR=${quicheHomeIncludeDir}" />
+                  <arg value="CC=${staticLib.cc}" />
+                  <arg value="EXTRA_CFLAGS=${staticLib.extraCflags}" />
+                </exec>
               </target>
             </configuration>
           </execution>
