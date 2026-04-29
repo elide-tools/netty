@@ -204,6 +204,7 @@
         <skipTests>true</skipTests>
         <staticLib.libname>netty_resolver_dns_native_macos_aarch_64</staticLib.libname>
         <skipStaticJar>false</skipStaticJar>
+        <staticLib.archivePath>${project.build.directory}/native-static/lib${staticLib.libname}.a</staticLib.archivePath>
       </properties>
       <build>
         <plugins>
@@ -249,14 +250,45 @@
                     <arg>${jni.compiler.args.cflags}</arg>
                     <configureArg>--host=aarch64-apple-darwin</configureArg>
                     <arg>MACOSX_DEPLOYMENT_TARGET=11.0</arg>
-                    <configureArg>--enable-static</configureArg>
-                    <configureArg>--with-pic</configureArg>
                   </configureArgs>
                 </configuration>
                 <goals>
                   <goal>generate</goal>
                   <goal>build</goal>
                 </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <!-- Build the static-archive under different CFLAGS than libtool's shared build:
+                   compile with -DNETTY_BUILD_STATIC -flto=thin -fvisibility=hidden, then archive
+                   along with unix-common's pre-built .o files for a self-contained .a.
+                   Output lands at ${staticLib.archivePath} where the parent's static-jar antrun
+                   reads it. Runs at prepare-package so the parent's package-phase static-jar
+                   antrun finds the archive ready. -->
+              <execution>
+                <id>build-static-archive</id>
+                <phase>prepare-package</phase>
+                <goals><goal>run</goal></goals>
+                <configuration>
+                  <skip>${skipStaticJar}</skip>
+                  <target>
+                    <exec executable="make" dir="${project.basedir}" failonerror="true">
+                      <arg value="-f" />
+                      <arg value="src/main/c/Makefile.static" />
+                      <arg value="JNI_PLATFORM=darwin" />
+                      <arg value="LIB_DIR=${project.build.directory}/native-static" />
+                      <arg value="LIB_NAME=lib${staticLib.libname}" />
+                      <arg value="SRC_DIR=${nativeSourceDirectory}" />
+                      <arg value="UNIX_COMMON_INCLUDE_DIR=${unix.common.include.unpacked.dir}" />
+                      <arg value="UNIX_COMMON_AR=${unix.common.lib.unpacked.dir}/lib${unix.common.lib.name}.a" />
+                      <arg value="EXTRA_CFLAGS=-target arm64-apple-macos11" />
+                    </exec>
+                  </target>
+                </configuration>
               </execution>
             </executions>
           </plugin>
@@ -338,6 +370,7 @@
         <skipTests>true</skipTests>
         <staticLib.libname>netty_resolver_dns_native_macos_x86_64</staticLib.libname>
         <skipStaticJar>false</skipStaticJar>
+        <staticLib.archivePath>${project.build.directory}/native-static/lib${staticLib.libname}.a</staticLib.archivePath>
       </properties>
       <build>
         <plugins>
@@ -383,14 +416,45 @@
                     <arg>${jni.compiler.args.cflags}</arg>
                     <configureArg>--host=x86_64-apple-darwin</configureArg>
                     <arg>MACOSX_DEPLOYMENT_TARGET=10.9</arg>
-                    <configureArg>--enable-static</configureArg>
-                    <configureArg>--with-pic</configureArg>
                   </configureArgs>
                 </configuration>
                 <goals>
                   <goal>generate</goal>
                   <goal>build</goal>
                 </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <!-- Build the static-archive under different CFLAGS than libtool's shared build:
+                   compile with -DNETTY_BUILD_STATIC -flto=thin -fvisibility=hidden, then archive
+                   along with unix-common's pre-built .o files for a self-contained .a.
+                   Output lands at ${staticLib.archivePath} where the parent's static-jar antrun
+                   reads it. Runs at prepare-package so the parent's package-phase static-jar
+                   antrun finds the archive ready. -->
+              <execution>
+                <id>build-static-archive</id>
+                <phase>prepare-package</phase>
+                <goals><goal>run</goal></goals>
+                <configuration>
+                  <skip>${skipStaticJar}</skip>
+                  <target>
+                    <exec executable="make" dir="${project.basedir}" failonerror="true">
+                      <arg value="-f" />
+                      <arg value="src/main/c/Makefile.static" />
+                      <arg value="JNI_PLATFORM=darwin" />
+                      <arg value="LIB_DIR=${project.build.directory}/native-static" />
+                      <arg value="LIB_NAME=lib${staticLib.libname}" />
+                      <arg value="SRC_DIR=${nativeSourceDirectory}" />
+                      <arg value="UNIX_COMMON_INCLUDE_DIR=${unix.common.include.unpacked.dir}" />
+                      <arg value="UNIX_COMMON_AR=${unix.common.lib.unpacked.dir}/lib${unix.common.lib.name}.a" />
+                      <arg value="EXTRA_CFLAGS=-target x86_64-apple-macos10.9" />
+                    </exec>
+                  </target>
+                </configuration>
               </execution>
             </executions>
           </plugin>
