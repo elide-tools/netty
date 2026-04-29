@@ -2054,6 +2054,28 @@
             </dependency>
           </dependencies>
           <executions>
+            <!-- Re-apply +x to autogen.sh / configure scripts hawtjni:generate
+                 extracted from its native-package zip. Java's ZIP extraction
+                 drops unix exec bits on Linux (and Docker-on-Mac bind mounts
+                 don't restore them), so without this hawtjni:build's
+                 ProcessBuilder hits error=13 Permission denied. Runs at
+                 process-sources, after hawtjni:generate (generate-sources)
+                 and before hawtjni:build (compile). Silently skips modules
+                 with no hawtjni native-package directory. -->
+            <execution>
+              <id>chmod-hawtjni-autogen</id>
+              <phase>process-sources</phase>
+              <goals><goal>run</goal></goals>
+              <configuration>
+                <target>
+                  <chmod perm="755" failonerror="false">
+                    <fileset dir="${project.build.directory}/generated-sources/hawtjni"
+                             includes="**/*.sh,**/configure"
+                             erroronmissingdir="false" />
+                  </chmod>
+                </target>
+              </configuration>
+            </execution>
             <execution>
               <id>static-jar</id>
               <phase>package</phase>

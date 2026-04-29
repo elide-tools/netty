@@ -132,19 +132,42 @@ if [[ "$PREP" == 1 ]]; then
   #   - all/                       — its mac/linux profiles declare classifier deps without versions (BOM-resolved); fails Maven 3.9.x strict validation when the host's profile activates.
   #   - testsuite-*/               — multiple testsuites hardcode platform-specific classifier deps (e.g. transport-native-epoll:osx-aarch_64) that don't exist on cross hosts.
   #   - native modules themselves  — built in the per-profile loop below, not here.
-  ./mvnw install -DskipTests -q "${SKIP_FLAGS[@]}" \
+  # Use `clean install` to wipe any stale target/ (especially important when /code is bind-mounted
+  # across host platforms — stale Mac target/ otherwise gets reused by Linux container builds).
+  ./mvnw clean install -DskipTests -q "${SKIP_FLAGS[@]}" \
     -pl '!all,!transport-native-epoll,!transport-native-kqueue,!transport-native-io_uring,!codec-native-quic,!resolver-dns-native-macos,!testsuite,!testsuite-autobahn,!testsuite-common,!testsuite-http2,!testsuite-jpms,!testsuite-karaf,!testsuite-native,!testsuite-native-image,!testsuite-native-image-client,!testsuite-native-image-client-runtime-init,!testsuite-osgi,!testsuite-shading'
 fi
 
 DEPLOY_REPO="local::default::file://$STAGE"
 
+# The hawtjni-maven-plugin 1.18 extracts a project-template/ from its plugin JAR
+# into target/generated-sources/hawtjni/native-package/ at process-classes phase.
+# The Java ZIP API drops unix +x bits during extraction, so on Linux (and Linux
+# Docker on Mac) the extracted autogen.sh ends up as 0644. hawtjni then tries to
+# `./autogen.sh` and hits error=13 Permission denied. Workaround: run hawtjni:generate
+# with -Dhawtjni.skipAutogen=true (so it extracts+substitutes templates but skips
+# autogen), chmod the script, run autogen ourselves, then run deploy with
+# skipAutogen=true again so hawtjni:build proceeds straight to ./configure.
+HAWTJNI_AUTOGEN_WORKAROUND="-Dhawtjni.skipAutogen=true"
+
 for m in "${MODULES[@]}"; do
   echo "==> Staging $m (profile=$PROFILE) → $STAGE"
   (
     cd "$m"
-    # `clean` ensures hawtjni regenerates configure/Makefile from scratch so
-    # cross-compile runs after a native run don't reuse stale arch state.
-    ../mvnw "-P$PROFILE" clean deploy -DskipTests -q "${SKIP_FLAGS[@]}" \
+    rm -rf target
+    # Pass 1: extract+substitute hawtjni templates (no autogen).
+    ../mvnw "-P$PROFILE" process-classes -DskipTests -q "${SKIP_FLAGS[@]}" \
+      "$HAWTJNI_AUTOGEN_WORKAROUND" >/dev/null
+    # chmod and run autogen ourselves so the resulting configure script has
+    # the right contents post-template-substitution.
+    if [[ -d target/generated-sources/hawtjni/native-package ]]; then
+      chmod +x target/generated-sources/hawtjni/native-package/*.sh 2>/dev/null || true
+      ( cd target/generated-sources/hawtjni/native-package && ./autogen.sh ) >/dev/null
+    fi
+    # Pass 2: full deploy. hawtjni:build runs ./configure (already generated)
+    # and proceeds to make, then our static-jar antrun runs at package phase.
+    ../mvnw "-P$PROFILE" deploy -DskipTests -q "${SKIP_FLAGS[@]}" \
+      "$HAWTJNI_AUTOGEN_WORKAROUND" \
       "-DaltDeploymentRepository=$DEPLOY_REPO"
   )
 done
