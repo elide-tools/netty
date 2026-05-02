@@ -49,7 +49,14 @@ Usage: $0 <stage-dir> <profile> [--prep-deps]
                  Run once per branch update; idempotent thereafter.
 
 Environment:
-  NETTY_DIR      Path to the netty checkout. Default: $NETTY_DIR
+  NETTY_DIR        Path to the netty checkout. Default: $NETTY_DIR
+  VERBOSE          When non-empty, drop \`mvn -q\` so make/clang output
+                   reaches the terminal — useful for diagnosing static-
+                   archive build failures.
+  MODULES_FILTER   Comma-separated list of substrings; only modules whose
+                   name contains one of these substrings will be built.
+                   Lets you isolate one module while iterating on a fix.
+                   Example: MODULES_FILTER=epoll
 EOF
 }
 
@@ -133,6 +140,34 @@ case "$PROFILE" in
     exit 1
     ;;
 esac
+
+# Optional substring filter — when MODULES_FILTER is set, only modules whose
+# name contains one of the comma-separated substrings are kept. Lets you
+# narrow a debugging loop to a single failing module without editing the
+# case-statement above.
+if [[ -n "${MODULES_FILTER:-}" ]]; then
+  IFS=',' read -ra _filters <<<"$MODULES_FILTER"
+  _kept=()
+  for m in "${MODULES[@]}"; do
+    for f in "${_filters[@]}"; do
+      [[ "$m" == *"$f"* ]] && { _kept+=("$m"); break; }
+    done
+  done
+  if [[ ${#_kept[@]} -eq 0 ]]; then
+    echo "MODULES_FILTER='$MODULES_FILTER' matched no modules in profile '$PROFILE'" >&2
+    exit 1
+  fi
+  MODULES=("${_kept[@]}")
+  echo "==> MODULES_FILTER='$MODULES_FILTER' → ${MODULES[*]}"
+fi
+
+# Maven verbosity: default to -q so build output stays compact, but allow
+# VERBOSE=1 to drop it (and switch to -e) for diagnosing make/clang errors.
+if [[ -n "${VERBOSE:-}" ]]; then
+  MVN_VERBOSITY=(-e)
+else
+  MVN_VERBOSITY=(-q)
+fi
 
 # Canonicalize STAGE so altDeploymentRepository receives an absolute file URL.
 mkdir -p "$STAGE"
@@ -352,7 +387,7 @@ if [[ "$PREP" == 1 ]]; then
   case "$MVN_PROFILE" in
     mac-intel-cross-compile|mac-m1-cross-compile) PREP_PROFILE_ARGS=("-P$MVN_PROFILE") ;;
   esac
-  ./mvnw ${PREP_PROFILE_ARGS[@]+"${PREP_PROFILE_ARGS[@]}"} clean install -DskipTests -q "${SKIP_FLAGS[@]}" \
+  ./mvnw ${PREP_PROFILE_ARGS[@]+"${PREP_PROFILE_ARGS[@]}"} clean install -DskipTests "${MVN_VERBOSITY[@]}" "${SKIP_FLAGS[@]}" \
     -pl '!all,!transport-native-epoll,!transport-native-kqueue,!transport-native-io_uring,!codec-native-quic,!resolver-dns-native-macos,!testsuite,!testsuite-autobahn,!testsuite-common,!testsuite-http2,!testsuite-jpms,!testsuite-karaf,!testsuite-native,!testsuite-native-image,!testsuite-native-image-client,!testsuite-native-image-client-runtime-init,!testsuite-osgi,!testsuite-shading'
 fi
 
@@ -371,7 +406,7 @@ for m in "${MODULES[@]}"; do
     # CC=clang arg in codec-native-quic's build-static-archive (which else
     # passes a hardcoded `clang` that doesn't exist on the gcc-only path).
     CC="$STATIC_CC" LTO_FLAGS="$STATIC_LTO_FLAGS" USER_CFLAGS="$USER_CFLAGS" \
-    ../mvnw "-P$MVN_PROFILE" deploy -DskipTests -q "${SKIP_FLAGS[@]}" \
+    ../mvnw "-P$MVN_PROFILE" deploy -DskipTests "${MVN_VERBOSITY[@]}" "${SKIP_FLAGS[@]}" \
       "-DstaticLib.cc=$STATIC_CC" \
       "-DaltDeploymentRepository=$DEPLOY_REPO"
   )
