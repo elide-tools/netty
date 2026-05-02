@@ -550,7 +550,7 @@ static void netty_epoll_linuxsocket_setTcpMd5Sig(JNIEnv* env, jclass clazz, jint
             netty_unix_errors_throwIOException(env, "key is too long");
             return;
        }
-        md5sig.tcpm_keylen = (u_int16_t) keylen;
+        md5sig.tcpm_keylen = (uint16_t) keylen;
         (*env)->GetByteArrayRegion(env, key, 0, keylen, (void *) &md5sig.tcpm_key);
         if ((*env)->ExceptionCheck(env) == JNI_TRUE) {
             return;
