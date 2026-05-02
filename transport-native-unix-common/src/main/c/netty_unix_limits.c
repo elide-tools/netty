@@ -21,6 +21,10 @@
 #include "netty_unix_limits.h"
 #include "netty_unix_util.h"
 #include "netty_jni_util.h"
+#ifdef NETTY_BUILD_STATIC
+#include "netty_jni_static.h"
+#endif
+
 
 #define LIMITS_CLASSNAME "io/netty/channel/unix/LimitsStaticallyReferencedJniMethods"
 
@@ -87,3 +91,10 @@ jint netty_unix_limits_JNI_OnLoad(JNIEnv* env, const char* packagePrefix) {
 void netty_unix_limits_JNI_OnUnLoad(JNIEnv* env, const char* packagePrefix) {
     netty_jni_util_unregister_natives(env, packagePrefix, LIMITS_CLASSNAME);
 }
+
+#include "netty_jni_static.h"
+NETTY_JNI_ALIAS(io_netty_channel_unix_LimitsStaticallyReferencedJniMethods, ssizeMax, netty_unix_limits_ssizeMax)
+NETTY_JNI_ALIAS(io_netty_channel_unix_LimitsStaticallyReferencedJniMethods, iovMax, netty_unix_limits_iovMax)
+NETTY_JNI_ALIAS(io_netty_channel_unix_LimitsStaticallyReferencedJniMethods, uioMaxIov, netty_unix_limits_uioMaxIov)
+NETTY_JNI_ALIAS(io_netty_channel_unix_LimitsStaticallyReferencedJniMethods, sizeOfjlong, netty_unix_limits_sizeOfjlong)
+NETTY_JNI_ALIAS(io_netty_channel_unix_LimitsStaticallyReferencedJniMethods, udsSunPathSize, netty_unix_limits_udsSunPathSize)

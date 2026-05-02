@@ -17,6 +17,10 @@
 #include "netty_unix_util.h"
 #include "netty_unix_buffer.h"
 #include "netty_jni_util.h"
+#ifdef NETTY_BUILD_STATIC
+#include "netty_jni_static.h"
+#endif
+
 
 #define BUFFER_CLASSNAME "io/netty/channel/unix/Buffer"
 
@@ -61,3 +65,8 @@ jint netty_unix_buffer_JNI_OnLoad(JNIEnv* env, const char* packagePrefix) {
 void netty_unix_buffer_JNI_OnUnLoad(JNIEnv* env, const char* packagePrefix) {
      netty_jni_util_unregister_natives(env, packagePrefix, BUFFER_CLASSNAME);
 }
+
+#include "netty_jni_static.h"
+NETTY_JNI_ALIAS(io_netty_channel_unix_Buffer, memoryAddress0, netty_unix_buffer_memoryAddress0)
+NETTY_JNI_ALIAS(io_netty_channel_unix_Buffer, addressSize0, netty_unix_buffer_addressSize0)
+NETTY_JNI_ALIAS(io_netty_channel_unix_Buffer, wrapMemoryAddress, netty_unix_buffer_wrapMemoryAddress)
