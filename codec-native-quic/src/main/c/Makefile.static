@@ -24,7 +24,7 @@
 # ${quicheBuildDir} for the per-platform paths the Maven build resolves.
 
 CC      ?= clang
-LTO_FLAGS ?= -flto=thin -fuse-linker-plugin
+LTO_FLAGS ?= -flto=thin
 ifeq ($(JNI_PLATFORM),darwin)
 AR        ?= ar
 RANLIB    ?= ranlib

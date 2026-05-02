@@ -282,14 +282,13 @@ if [[ -d /root/.cargo/bin ]] && ! command -v cargo >/dev/null 2>&1; then
   export PATH="/root/.cargo/bin:$PATH"
 fi
 
-# Decide CC + LTO. clang ≥ 8 gets -flto=thin -fuse-linker-plugin (the linker
-# plugin lets the system linker drive the LTO step from the .a's bitcode);
-# older clang or gcc skip both since they don't support thin LTO.
+# Decide CC + LTO. clang ≥ 8 gets -flto=thin so .a members are emitted as
+# LLVM bitcode; older clang or gcc skip it since they don't support thin LTO.
 if command -v clang >/dev/null 2>&1 && clang --version 2>&1 | head -1 | grep -qvE 'version (3|4|5|6|7)\.'; then
   STATIC_CC=clang
   STATIC_AR=$(command -v llvm-ar || echo ar)
   STATIC_RANLIB=$(command -v llvm-ranlib || echo ranlib)
-  STATIC_LTO_FLAGS="-flto=thin -fuse-linker-plugin"
+  STATIC_LTO_FLAGS="-flto=thin"
 elif command -v gcc >/dev/null 2>&1; then
   STATIC_CC=gcc
   STATIC_AR=ar
