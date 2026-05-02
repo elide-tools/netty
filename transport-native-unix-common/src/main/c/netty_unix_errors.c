@@ -21,6 +21,10 @@
 #include "netty_unix_jni.h"
 #include "netty_unix_util.h"
 #include "netty_jni_util.h"
+#ifdef NETTY_BUILD_STATIC
+#include "netty_jni_static.h"
+#endif
+
 
 #define ERRORS_CLASSNAME "io/netty/channel/unix/ErrorsStaticallyReferencedJniMethods"
 
@@ -282,3 +286,19 @@ void netty_unix_errors_JNI_OnUnLoad(JNIEnv* env, const char* packagePrefix) {
 
     netty_jni_util_unregister_natives(env, packagePrefix, ERRORS_CLASSNAME);
 }
+
+#include "netty_jni_static.h"
+NETTY_JNI_ALIAS(io_netty_channel_unix_ErrorsStaticallyReferencedJniMethods, errnoENOENT, netty_unix_errors_errnoENOENT)
+NETTY_JNI_ALIAS(io_netty_channel_unix_ErrorsStaticallyReferencedJniMethods, errnoENOTCONN, netty_unix_errors_errnoENOTCONN)
+NETTY_JNI_ALIAS(io_netty_channel_unix_ErrorsStaticallyReferencedJniMethods, errnoEBADF, netty_unix_errors_errnoEBADF)
+NETTY_JNI_ALIAS(io_netty_channel_unix_ErrorsStaticallyReferencedJniMethods, errnoEPIPE, netty_unix_errors_errnoEPIPE)
+NETTY_JNI_ALIAS(io_netty_channel_unix_ErrorsStaticallyReferencedJniMethods, errnoECONNRESET, netty_unix_errors_errnoECONNRESET)
+NETTY_JNI_ALIAS(io_netty_channel_unix_ErrorsStaticallyReferencedJniMethods, errnoEAGAIN, netty_unix_errors_errnoEAGAIN)
+NETTY_JNI_ALIAS(io_netty_channel_unix_ErrorsStaticallyReferencedJniMethods, errnoEWOULDBLOCK, netty_unix_errors_errnoEWOULDBLOCK)
+NETTY_JNI_ALIAS(io_netty_channel_unix_ErrorsStaticallyReferencedJniMethods, errnoEINPROGRESS, netty_unix_errors_errnoEINPROGRESS)
+NETTY_JNI_ALIAS(io_netty_channel_unix_ErrorsStaticallyReferencedJniMethods, errorECONNREFUSED, netty_unix_errors_errorECONNREFUSED)
+NETTY_JNI_ALIAS(io_netty_channel_unix_ErrorsStaticallyReferencedJniMethods, errorEISCONN, netty_unix_errors_errorEISCONN)
+NETTY_JNI_ALIAS(io_netty_channel_unix_ErrorsStaticallyReferencedJniMethods, errorEALREADY, netty_unix_errors_errorEALREADY)
+NETTY_JNI_ALIAS(io_netty_channel_unix_ErrorsStaticallyReferencedJniMethods, errorENETUNREACH, netty_unix_errors_errorENETUNREACH)
+NETTY_JNI_ALIAS(io_netty_channel_unix_ErrorsStaticallyReferencedJniMethods, errorEHOSTUNREACH, netty_unix_errors_errorEHOSTUNREACH)
+NETTY_JNI_ALIAS(io_netty_channel_unix_ErrorsStaticallyReferencedJniMethods, strError, netty_unix_errors_strError)

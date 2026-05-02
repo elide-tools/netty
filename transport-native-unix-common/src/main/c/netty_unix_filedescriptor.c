@@ -26,6 +26,10 @@
 #include "netty_unix_jni.h"
 #include "netty_unix_util.h"
 #include "netty_jni_util.h"
+#ifdef NETTY_BUILD_STATIC
+#include "netty_jni_static.h"
+#endif
+
 
 #define FILEDESCRIPTOR_CLASSNAME "io/netty/channel/unix/FileDescriptor"
 
@@ -324,3 +328,14 @@ done:
 void netty_unix_filedescriptor_JNI_OnUnLoad(JNIEnv* env, const char* packagePrefix) {
     netty_jni_util_unregister_natives(env, packagePrefix, FILEDESCRIPTOR_CLASSNAME);
 }
+
+#include "netty_jni_static.h"
+NETTY_JNI_ALIAS(io_netty_channel_unix_FileDescriptor, close, netty_unix_filedescriptor_close)
+NETTY_JNI_ALIAS(io_netty_channel_unix_FileDescriptor, open, netty_unix_filedescriptor_open)
+NETTY_JNI_ALIAS(io_netty_channel_unix_FileDescriptor, write, netty_unix_filedescriptor_write)
+NETTY_JNI_ALIAS(io_netty_channel_unix_FileDescriptor, writeAddress, netty_unix_filedescriptor_writeAddress)
+NETTY_JNI_ALIAS(io_netty_channel_unix_FileDescriptor, writevAddresses, netty_unix_filedescriptor_writevAddresses)
+NETTY_JNI_ALIAS(io_netty_channel_unix_FileDescriptor, writev, netty_unix_filedescriptor_writev)
+NETTY_JNI_ALIAS(io_netty_channel_unix_FileDescriptor, read, netty_unix_filedescriptor_read)
+NETTY_JNI_ALIAS(io_netty_channel_unix_FileDescriptor, readAddress, netty_unix_filedescriptor_readAddress)
+NETTY_JNI_ALIAS(io_netty_channel_unix_FileDescriptor, newPipe, netty_unix_filedescriptor_newPipe)
