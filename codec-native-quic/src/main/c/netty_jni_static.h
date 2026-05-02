@@ -22,19 +22,22 @@
  * NETTY_JNI_ALIAS — emit a JNI-spec entry symbol Java_<class>_<method> as an
  * alias for an existing internal C function.
  *
- * This is used in the static-archive build path (gated by NETTY_BUILD_STATIC;
- * this header is only pulled in under that gate) to expose JNI methods at
- * default visibility for a JVM that resolves them via dlsym on the program
- * image.
+ * Used in the static-archive build path (gated by NETTY_BUILD_STATIC; this
+ * header is only pulled in under that gate) to expose JNI methods at default
+ * visibility for a JVM that resolves them via dlsym on the program image.
  *
- * Implementation note: Clang on Mach-O does NOT support __attribute__((alias))
- * (it errors with "aliases are not supported on darwin"). To stay portable
- * across ELF (Linux/BSD) and Mach-O (macOS) we emit the alias as an assembler
- * directive at file scope: `.globl <Java_*>` exports the new symbol and
- * `.set <Java_*>, <internal_fn>` makes it equivalent to the existing target.
- * Both forms are accepted by GNU as and Apple's as. The leading underscore
- * required for Mach-O symbol names (and absent on ELF) is handled by the
- * NETTY_JNI_SYMBOL_PREFIX macro.
+ * Implementation:
+ *   - ELF (Linux/BSD): __attribute__((alias, visibility("default"))). This
+ *     creates a proper symbol alias in the LLVM IR, so it appears in both the
+ *     bitcode and the archive symbol index — required for LTO archives that
+ *     LLD scans before pulling in object files. The visibility override is
+ *     critical when the translation unit is compiled with -fvisibility=hidden:
+ *     without it the alias inherits hidden visibility and the linker can't
+ *     resolve external references to Java_*.
+ *   - Mach-O (macOS): clang rejects __attribute__((alias)) with "aliases are
+ *     not supported on darwin". Fall back to a `.set` assembler directive at
+ *     file scope. Mach-O archives don't get LTO-bitcode-index issues because
+ *     Mach-O linkers always read the .o symbol tables (post-asm).
  *
  * Arguments:
  *   java_class  — Fully qualified Java class with '_' separators
@@ -43,14 +46,13 @@
  *   internal_fn — Existing C function name (e.g. netty_kqueue_native_kqueueCreate).
  */
 #if defined(__APPLE__)
-#  define NETTY_JNI_SYMBOL_PREFIX "_"
+#  define NETTY_JNI_ALIAS(java_class, method, internal_fn) \
+       __asm__(".globl _Java_" #java_class "_" #method "\n" \
+               ".set _Java_" #java_class "_" #method ", _" #internal_fn);
 #else
-#  define NETTY_JNI_SYMBOL_PREFIX ""
+#  define NETTY_JNI_ALIAS(java_class, method, internal_fn) \
+       extern __typeof__(internal_fn) Java_##java_class##_##method \
+           __attribute__((alias(#internal_fn), visibility("default")));
 #endif
-
-#define NETTY_JNI_ALIAS(java_class, method, internal_fn) \
-    __asm__(".globl " NETTY_JNI_SYMBOL_PREFIX "Java_" #java_class "_" #method "\n" \
-            ".set "   NETTY_JNI_SYMBOL_PREFIX "Java_" #java_class "_" #method ", " \
-                      NETTY_JNI_SYMBOL_PREFIX #internal_fn);
 
 #endif /* NETTY_JNI_STATIC_H */
