@@ -18,10 +18,15 @@
 #   EXTRA_CFLAGS             - additional CFLAGS appended last
 
 CC        ?= clang
+ifeq ($(JNI_PLATFORM),darwin)
+AR        ?= ar
+RANLIB    ?= ranlib
+else
 AR        ?= llvm-ar
 RANLIB    ?= llvm-ranlib
+endif
 OBJ_DIR   ?= $(LIB_DIR)/obj
-LTO_FLAGS ?= -flto=thin
+LTO_FLAGS ?= -flto=thin -fuse-linker-plugin
 
 JNI_INCLUDE_DIR = $(JAVA_HOME)/include
 JNI_INCLUDES    = -I$(JNI_INCLUDE_DIR) -I$(JNI_INCLUDE_DIR)/$(JNI_PLATFORM)
