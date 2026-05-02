@@ -12,3 +12,15 @@
 # all matching files are concatenated in order: base → os → arch.
 
 -flto=thin
+-ffunction-sections
+-fdata-sections
+-fstack-protector-strong
+-fexperimental-relative-c++-abi-vtables
+# Linux-only flags (-fbasic-block-sections=all, -fstack-clash-protection)
+# live in cflags/linux.txt — Apple's clang rejects them on darwin.
+#
+# Polly is a clang LLVM plugin that ships with neither Alpine's clang22 nor
+# Apple's clang. Re-enable in a host-specific cflags/<os>.txt only when the
+# host has a custom clang built with -DLLVM_ENABLE_PROJECTS="...polly...".
+# -mllvm
+# -polly
