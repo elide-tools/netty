@@ -47,6 +47,9 @@ Usage: $0 <stage-dir> <platform> [--prep-deps]
 
 Environment:
   TCNATIVE_DIR   Path to the netty-tcnative checkout. Default: $TCNATIVE_DIR
+  VERBOSE        When non-empty, drop \`mvn -q\` so make/clang output reaches
+                 the terminal — useful for diagnosing static-archive build
+                 failures.
 
 Per-platform module → profile mapping:
 
@@ -319,13 +322,21 @@ for cflags_file in \
   USER_CFLAGS="${USER_CFLAGS:+$USER_CFLAGS }$flags"
   CFLAGS_LOADED+=("$(basename "$cflags_file")")
 done
+
+# Maven verbosity: default to -q so build output stays compact, but allow
+# VERBOSE=1 to drop it (and switch to -e) for diagnosing make/clang errors.
+if [[ -n "${VERBOSE:-}" ]]; then
+  MVN_VERBOSITY=(-e)
+else
+  MVN_VERBOSITY=(-q)
+fi
 if [[ -n "$USER_CFLAGS" ]]; then
   echo "==> User CFLAGS from ${CFLAGS_LOADED[*]}: $USER_CFLAGS"
 fi
 
 if [[ "$PREP" == 1 ]]; then
   echo "==> Installing openssl-classes (Java-only sibling) to ~/.m2"
-  ./mvnw clean install -DskipTests -q "${SKIP_FLAGS[@]}" -pl 'openssl-classes'
+  ./mvnw clean install -DskipTests "${MVN_VERBOSITY[@]}" "${SKIP_FLAGS[@]}" -pl 'openssl-classes'
 fi
 
 # id::layout::url — the legacy 3-token form is required by maven-deploy-plugin
@@ -351,7 +362,7 @@ for build in "${BUILDS[@]}"; do
   echo "==> Staging $module (platform=$PLATFORM, profile=$display_profile) → $STAGE"
   (
     cd "$module"
-    mvn_args=(clean deploy -DskipTests -q "${SKIP_FLAGS[@]}"
+    mvn_args=(clean deploy -DskipTests "${MVN_VERBOSITY[@]}" "${SKIP_FLAGS[@]}"
               ${APR_OVERRIDE[@]+"${APR_OVERRIDE[@]}"}
               "-DaltDeploymentRepository=$DEPLOY_REPO")
     if [[ -n "$profile" ]]; then
