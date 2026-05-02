@@ -43,7 +43,7 @@ CFLAGS := $(JNI_INCLUDES) \
           -O3 \
           -Wall \
           -Wno-attributes \
-          $(EXTRA_CFLAGS)
+          $(EXTRA_CFLAGS) $(USER_CFLAGS)
 
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
