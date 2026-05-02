@@ -55,3 +55,8 @@ mainframer
 # exclude file created by the flatten plugin
 .flattened-pom.xml
 .java-version
+
+# Local-only symlink to a working copy of netty-tcnative used by the
+# static-jni/ tooling. Intentionally untracked so each developer can point
+# the symlink at their own checkout (or replace it with a submodule).
+/netty-tcnative
