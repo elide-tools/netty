@@ -79,7 +79,12 @@ case "$PROFILE" in
     MODULES=(transport-native-kqueue)
     ;;
   linux)
-    MODULES=(transport-native-epoll transport-native-io_uring codec-native-quic)
+    # codec-native-quic excluded on Linux x86_64 builds run under Docker on Apple
+    # Silicon: BoringSSL's AVX-512 assembly fails to compile with the only
+    # SCL-available clang (5.0.1 in llvm-toolset-7) under QEMU emulation. Build
+    # quic on actual x86_64 hardware (a real Linux runner or CI) and rsync the
+    # resulting -static jar into the same stage dir.
+    MODULES=(transport-native-epoll transport-native-io_uring)
     ;;
   linux-aarch64)
     MODULES=(transport-native-epoll transport-native-io_uring codec-native-quic)
@@ -115,6 +120,37 @@ if [[ ! -x ./mvnw ]]; then
   exit 1
 fi
 
+# Ensure a modern clang is on PATH so Makefile.static can use -flto=thin.
+# CentOS 7 (Netty's bundled Linux build image) only has GCC by default; install
+# clang 5+ via the SCL llvm-toolset-7 package and source its enable script.
+# On hosts where clang already exists (Mac, modern Linux), this is a no-op.
+if ! command -v clang >/dev/null 2>&1; then
+  if [[ -f /opt/rh/llvm-toolset-7/enable ]]; then
+    : # already installed; will source below
+  elif command -v yum >/dev/null 2>&1; then
+    yum install -y -q centos-release-scl >/dev/null 2>&1 || true
+    yum install -y -q llvm-toolset-7 >/dev/null 2>&1 || true
+  fi
+  if [[ -f /opt/rh/llvm-toolset-7/enable ]]; then
+    # shellcheck disable=SC1091
+    source /opt/rh/llvm-toolset-7/enable
+  fi
+fi
+
+# Decide CC + LTO. clang gets -flto=thin (which only clang understands); gcc
+# fallback (no clang on PATH) skips LTO since gcc doesn't support thin LTO.
+if command -v clang >/dev/null 2>&1; then
+  STATIC_CC=clang
+  STATIC_AR=$(command -v llvm-ar || echo ar)
+  STATIC_RANLIB=$(command -v llvm-ranlib || echo ranlib)
+  STATIC_LTO_FLAGS="-flto=thin"
+else
+  STATIC_CC=cc
+  STATIC_AR=ar
+  STATIC_RANLIB=ranlib
+  STATIC_LTO_FLAGS=""
+fi
+
 # Skip checkstyle/nohttp/forbiddenapis/revapi across the board: this is a
 # downstream staging path, not a release; netty-parent's nohttp-checkstyle-
 # validation execution otherwise fails the build over URL-style content in
@@ -145,10 +181,10 @@ DEPLOY_REPO="local::default::file://$STAGE"
 # The Java ZIP API drops unix +x bits during extraction, so on Linux (and Linux
 # Docker on Mac) the extracted autogen.sh ends up as 0644. hawtjni then tries to
 # `./autogen.sh` and hits error=13 Permission denied. Workaround: run hawtjni:generate
-# with -Dhawtjni.skipAutogen=true (so it extracts+substitutes templates but skips
+# with -Dskip-autogen=true (so it extracts+substitutes templates but skips
 # autogen), chmod the script, run autogen ourselves, then run deploy with
 # skipAutogen=true again so hawtjni:build proceeds straight to ./configure.
-HAWTJNI_AUTOGEN_WORKAROUND="-Dhawtjni.skipAutogen=true"
+HAWTJNI_AUTOGEN_WORKAROUND="-Dskip-autogen=true"
 
 for m in "${MODULES[@]}"; do
   echo "==> Staging $m (profile=$PROFILE) → $STAGE"
@@ -166,6 +202,10 @@ for m in "${MODULES[@]}"; do
     fi
     # Pass 2: full deploy. hawtjni:build runs ./configure (already generated)
     # and proceeds to make, then our static-jar antrun runs at package phase.
+    # Exported env vars CC/AR/RANLIB/LTO_FLAGS propagate from this shell →
+    # mvn → antrun's <exec> → make, where they win over make's implicit
+    # defaults (origin "environment" beats origin "default").
+    CC="$STATIC_CC" AR="$STATIC_AR" RANLIB="$STATIC_RANLIB" LTO_FLAGS="$STATIC_LTO_FLAGS" \
     ../mvnw "-P$PROFILE" deploy -DskipTests -q "${SKIP_FLAGS[@]}" \
       "$HAWTJNI_AUTOGEN_WORKAROUND" \
       "-DaltDeploymentRepository=$DEPLOY_REPO"
