@@ -52,7 +52,7 @@ CFLAGS := $(JNI_INCLUDES) \
           -O3 \
           -Wall \
           -Wno-attributes \
-          $(EXTRA_CFLAGS)
+          $(EXTRA_CFLAGS) $(USER_CFLAGS)
 
 # Quic's own sources plus netty_jni_util.c (which lives outside SRC_DIR
 # because it is unpacked from the netty-jni-util artifact at build time).
