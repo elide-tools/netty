@@ -228,13 +228,13 @@
         </property>
       </activation>
       <properties>
-        <extraCflags>-O3 -fno-omit-frame-pointer</extraCflags>
-        <extraCxxflags>-O3 -fno-omit-frame-pointer</extraCxxflags>
+        <extraCflags>-O3 -fno-omit-frame-pointer -Wno-error=unused-command-line-argument</extraCflags>
+        <extraCxxflags>-O3 -fno-omit-frame-pointer -Wno-error=unused-command-line-argument</extraCxxflags>
         <!-- On *nix, add ASM flags to disable executable stack -->
         <cmakeAsmFlags>-Wa,--noexecstack</cmakeAsmFlags>
         <cmakeCFlags>${extraCflags}</cmakeCFlags>
         <!-- We need to define __STDC_CONSTANT_MACROS and __STDC_FORMAT_MACROS when building boringssl on centos 6 -->
-        <cmakeCxxFlags>${extraCxxflags} -Wno-error=maybe-uninitialized -Wno-error=shadow -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS</cmakeCxxFlags>
+        <cmakeCxxFlags>${extraCxxflags} -Wno-error=unknown-warning-option -Wno-error=maybe-uninitialized -Wno-error=shadow -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS</cmakeCxxFlags>
         <libssl>libssl.a</libssl>
         <libcrypto>libcrypto.a</libcrypto>
         <libquiche>libquiche.a</libquiche>
@@ -526,7 +526,7 @@
         <cmakeAsmFlags>-Wa,--noexecstack</cmakeAsmFlags>
         <cmakeCFlags>${extraCflags}</cmakeCFlags>
         <!-- We need to define __STDC_CONSTANT_MACROS and __STDC_FORMAT_MACROS when building boringssl on centos 6 -->
-        <cmakeCxxFlags>${extraCxxflags} -Wno-error=maybe-uninitialized -Wno-error=shadow -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS</cmakeCxxFlags>
+        <cmakeCxxFlags>${extraCxxflags} -Wno-error=unknown-warning-option -Wno-error=maybe-uninitialized -Wno-error=shadow -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS</cmakeCxxFlags>
         <libssl>libssl.a</libssl>
         <libcrypto>libcrypto.a</libcrypto>
         <libquiche>libquiche.a</libquiche>
@@ -1199,6 +1199,12 @@
               <windowsPlatformToolset>v143</windowsPlatformToolset>
               <libDirectory>${nativeLibOnlyDir}</libDirectory>
               <verbose>true</verbose>
+              <!-- Disable hawtjni's fallback native-src zip download. We never publish
+                   that artifact for our fork, and the build is self-contained from
+                   local source via the copy-src/setup-template antrun executions
+                   above. Without this flag, hawtjni:build tries to fetch the zip and
+                   fails with "Requested download does not exist". -->
+              <downloadSourcePackage>false</downloadSourcePackage>
               <configureArgs>
                 <configureArg>${extraConfigureArg}</configureArg>
                 <configureArg>${extraConfigureArg2}</configureArg>
