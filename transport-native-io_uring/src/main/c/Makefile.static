@@ -16,8 +16,14 @@
 #   EXTRA_CFLAGS             - additional CFLAGS appended last
 
 CC      ?= clang
-AR      ?= llvm-ar
-RANLIB  ?= llvm-ranlib
+LTO_FLAGS ?= -flto=thin -fuse-linker-plugin
+ifeq ($(JNI_PLATFORM),darwin)
+AR        ?= ar
+RANLIB    ?= ranlib
+else
+AR        ?= llvm-ar
+RANLIB    ?= llvm-ranlib
+endif
 OBJ_DIR ?= $(LIB_DIR)/obj
 
 JNI_INCLUDE_DIR = $(JAVA_HOME)/include
@@ -31,7 +37,7 @@ CFLAGS := $(JNI_INCLUDES) \
           -DNETTY_BUILD_STATIC \
           -fPIC \
           -fvisibility=hidden \
-          -flto=thin \
+          $(LTO_FLAGS) \
           -O3 \
           -Wall \
           -Wno-attributes \
