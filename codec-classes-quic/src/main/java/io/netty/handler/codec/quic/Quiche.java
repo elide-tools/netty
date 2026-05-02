@@ -21,6 +21,7 @@ import io.netty.util.collection.IntObjectHashMap;
 import io.netty.util.internal.ClassInitializerUtil;
 import io.netty.util.internal.NativeLibraryLoader;
 import io.netty.util.internal.PlatformDependent;
+import io.netty.util.internal.ThrowableUtil;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import org.jetbrains.annotations.Nullable;
@@ -69,20 +70,28 @@ final class Quiche {
 
     private static void loadNativeLibrary() {
         // This needs to be kept in sync with what is defined in netty_quic_quiche.c
-        // and pom.xml as jniLibPrefix.
-        String libName = "netty_quiche42";
+        // and pom.xml as jniLibPrefix. The C-side declares JNI_OnLoad_netty_quiche
+        // (no version, no arch) for static-JNI dispatch; the shared-lib path
+        // appends the version + os + arch to disambiguate per-classifier jars.
+        String staticLibName = "netty_quiche";
+        String sharedLibName = staticLibName + "42";
         ClassLoader cl = PlatformDependent.getClassLoader(Quiche.class);
 
         if (!PlatformDependent.isAndroid()) {
-            libName += '_' + PlatformDependent.normalizedOs()
+            sharedLibName += '_' + PlatformDependent.normalizedOs()
                     + '_' + PlatformDependent.normalizedArch();
         }
 
         try {
-            NativeLibraryLoader.load(libName, cl);
-        } catch (UnsatisfiedLinkError e) {
-            logger.debug("Failed to load {}", libName, e);
-            throw e;
+            NativeLibraryLoader.load(sharedLibName, cl);
+        } catch (UnsatisfiedLinkError e1) {
+            try {
+                NativeLibraryLoader.load(staticLibName, cl);
+            } catch (UnsatisfiedLinkError e2) {
+                ThrowableUtil.addSuppressed(e1, e2);
+                logger.debug("Failed to load {}", sharedLibName, e1);
+                throw e1;
+            }
         }
     }
 
