@@ -16,6 +16,15 @@
 -fdata-sections
 -fstack-protector-strong
 -fexperimental-relative-c++-abi-vtables
+
+# Gate out netty-jni-util's dladdr branch in JNI_OnLoad. That branch
+# discovers the loaded library's name at runtime by passing a function
+# pointer back through dladdr — which fails on a stripped statically-linked
+# binary (dladdr returns 0) and emits "FATAL: netty_<lib> JNI call to
+# dladdr failed!" at startup. SVM static-JNI builds always know the library
+# name at compile time, so the branch is unnecessary anyway. Threads through
+# USER_CFLAGS into every transport + tcnative static-archive build.
+-DNETTY_JNI_UTIL_BUILD_STATIC
 # Linux-only flags (-fbasic-block-sections=all, -fstack-clash-protection)
 # live in cflags/linux.txt — Apple's clang rejects them on darwin.
 #

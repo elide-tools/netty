@@ -21,6 +21,10 @@
 /target
 */target
 
+# Static-JNI build outputs (static-jni/scripts/stage-natives*.sh)
+/stage
+/m2
+
 # Report directories
 /reports
 */reports

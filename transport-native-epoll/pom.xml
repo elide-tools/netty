@@ -370,7 +370,12 @@
                     <arg>${jni.compiler.args.cflags}</arg>
                     <configureArg>--libdir=${project.build.directory}/native-build/target/lib</configureArg>
                     <configureArg>--host=aarch64-linux-gnu</configureArg>
-                    <configureArg>CC=aarch64-none-linux-gnu-gcc</configureArg>
+                    <!-- Elide fork: removed CC=aarch64-none-linux-gnu-gcc
+                         hardcode so configure honors env CC. Upstream
+                         provisions a gcc cross toolchain; the static-jni
+                         pipeline (static-jni/scripts/stage-natives.sh)
+                         runs Alpine's native clang22 inside an arm64
+                         container instead, which already targets aarch64. -->
                   </configureArgs>
                 </configuration>
                 <goals>
@@ -391,17 +396,17 @@
                 <configuration>
                   <skip>${skipStaticJar}</skip>
                   <target>
-                    <!-- Cross-compile fallback: pass the gcc cross-compiler (clang cross is not
-                         provisioned in the release toolchain). LTO is disabled because gcc does
-                         not accept clang's "-flto=thin"; the static archive is otherwise the same. -->
+                    <!-- Elide fork: dropped the explicit gcc cross-toolchain
+                         args (CC, AR, RANLIB) and the empty LTO_FLAGS= so
+                         env CC/AR/RANLIB from static-jni/scripts/stage-natives.sh
+                         (Alpine's clang22 + llvm-ar + llvm-ranlib, running
+                         natively on a linux/arm64 docker host) flow through
+                         to Makefile.static. LTO stays on since clang
+                         supports thin-LTO across targets. -->
                     <exec executable="make" dir="${project.basedir}" failonerror="true">
                       <arg value="-f" />
                       <arg value="src/main/c/Makefile.static" />
                       <arg value="JNI_PLATFORM=linux" />
-                      <arg value="CC=aarch64-none-linux-gnu-gcc" />
-                      <arg value="AR=aarch64-none-linux-gnu-ar" />
-                      <arg value="RANLIB=aarch64-none-linux-gnu-ranlib" />
-                      <arg value="LTO_FLAGS=" />
                       <arg value="LIB_DIR=${project.build.directory}/native-static" />
                       <arg value="LIB_NAME=lib${staticLib.libname}" />
                       <arg value="SRC_DIR=${nativeSourceDirectory}" />
