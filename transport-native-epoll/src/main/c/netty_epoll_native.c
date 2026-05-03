@@ -885,6 +885,12 @@ NETTY_JNI_ALIAS(io_netty_channel_epoll_NativeStaticallyReferencedJniMethods, isS
 NETTY_JNI_ALIAS(io_netty_channel_epoll_NativeStaticallyReferencedJniMethods, tcpFastopenMode,      netty_epoll_native_tcpFastopenMode)
 NETTY_JNI_ALIAS(io_netty_channel_epoll_NativeStaticallyReferencedJniMethods, kernelVersion,        netty_epoll_native_kernelVersion)
 
+// NOTE: ssizeMax / iovMax / uioMaxIov for the epoll-class JNI prefix are
+// emitted from transport-native-unix-common/src/main/c/netty_unix_limits.c —
+// `__attribute__((alias))` requires the alias target to live in the same
+// translation unit, and those C bodies are in netty_unix_limits.c. See
+// ELIDE_NETTY_JNI_ALIAS_GAPS.md.
+
 NETTY_JNI_ALIAS(io_netty_channel_epoll_Native, eventFd,                netty_epoll_native_eventFd)
 NETTY_JNI_ALIAS(io_netty_channel_epoll_Native, timerFd,                netty_epoll_native_timerFd)
 NETTY_JNI_ALIAS(io_netty_channel_epoll_Native, eventFdWrite,           netty_epoll_native_eventFdWrite)
@@ -1052,12 +1058,29 @@ static void netty_epoll_native_JNI_OnUnload(JNIEnv* env) {
 // We build with -fvisibility=hidden so ensure we mark everything that needs to be visible with JNIEXPORT
 // https://mail.openjdk.java.net/pipermail/core-libs-dev/2013-February/014549.html
 
+// Survives both LTO IR-level DCE and linker --gc-sections in static-link
+// builds: the JVM resolves JNI_OnLoad_<lib> via dlsym on the program image
+// (no in-IR caller). `used` keeps the body in IR through ThinLTO; `retain`
+// keeps the section through --gc-sections. `retain` requires Clang 13+ /
+// GCC 11+; gracefully degrade on older compilers.
+#if defined(__GNUC__) || defined(__clang__)
+#  if defined(__has_attribute) && __has_attribute(retain)
+#    define NETTY_JNI_RETAIN __attribute__((used, retain))
+#  else
+#    define NETTY_JNI_RETAIN __attribute__((used))
+#  endif
+#else
+#  define NETTY_JNI_RETAIN
+#endif
+
 // Invoked by the JVM when statically linked
+NETTY_JNI_RETAIN
 JNIEXPORT jint JNI_OnLoad_netty_transport_native_epoll(JavaVM* vm, void* reserved) {
     return netty_jni_util_JNI_OnLoad(vm, reserved, "netty_transport_native_epoll", netty_epoll_native_JNI_OnLoad);
 }
 
 // Invoked by the JVM when statically linked
+NETTY_JNI_RETAIN
 JNIEXPORT void JNI_OnUnload_netty_transport_native_epoll(JavaVM* vm, void* reserved) {
     netty_jni_util_JNI_OnUnload(vm, reserved, netty_epoll_native_JNI_OnUnload);
 }

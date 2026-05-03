@@ -483,12 +483,29 @@ static void netty_kqueue_native_JNI_OnUnload(JNIEnv* env) {
 // We build with -fvisibility=hidden so ensure we mark everything that needs to be visible with JNIEXPORT
 // https://mail.openjdk.java.net/pipermail/core-libs-dev/2013-February/014549.html
 
+// Survives both LTO IR-level DCE and linker --gc-sections in static-link
+// builds: the JVM resolves JNI_OnLoad_<lib> via dlsym on the program image
+// (no in-IR caller). `used` keeps the body in IR through ThinLTO; `retain`
+// keeps the section through --gc-sections. `retain` requires Clang 13+ /
+// GCC 11+; gracefully degrade on older compilers.
+#if defined(__GNUC__) || defined(__clang__)
+#  if defined(__has_attribute) && __has_attribute(retain)
+#    define NETTY_JNI_RETAIN __attribute__((used, retain))
+#  else
+#    define NETTY_JNI_RETAIN __attribute__((used))
+#  endif
+#else
+#  define NETTY_JNI_RETAIN
+#endif
+
 // Invoked by the JVM when statically linked
+NETTY_JNI_RETAIN
 JNIEXPORT jint JNI_OnLoad_netty_transport_native_kqueue(JavaVM* vm, void* reserved) {
     return netty_jni_util_JNI_OnLoad(vm, reserved, "netty_transport_native_kqueue", netty_kqueue_native_JNI_OnLoad);
 }
 
 // Invoked by the JVM when statically linked
+NETTY_JNI_RETAIN
 JNIEXPORT void JNI_OnUnload_netty_transport_native_kqueue(JavaVM* vm, void* reserved) {
     netty_jni_util_JNI_OnUnload(vm, reserved, netty_kqueue_native_JNI_OnUnload);
 }
