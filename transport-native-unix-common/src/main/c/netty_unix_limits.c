@@ -98,3 +98,15 @@ NETTY_JNI_ALIAS(io_netty_channel_unix_LimitsStaticallyReferencedJniMethods, iovM
 NETTY_JNI_ALIAS(io_netty_channel_unix_LimitsStaticallyReferencedJniMethods, uioMaxIov, netty_unix_limits_uioMaxIov)
 NETTY_JNI_ALIAS(io_netty_channel_unix_LimitsStaticallyReferencedJniMethods, sizeOfjlong, netty_unix_limits_sizeOfjlong)
 NETTY_JNI_ALIAS(io_netty_channel_unix_LimitsStaticallyReferencedJniMethods, udsSunPathSize, netty_unix_limits_udsSunPathSize)
+
+// Elide fork (see ELIDE_NETTY_JNI_ALIAS_GAPS.md): epoll's
+// NativeStaticallyReferencedJniMethods Java class declares ssizeMax / iovMax /
+// uioMaxIov directly (it doesn't inherit from the unix-common class), so the
+// SVM static-JNI prefix lookup expects Java_<epoll-class>_<method> symbols in
+// addition to the Java_<unix-class>_<method> aliases above. clang/gcc require
+// __attribute__((alias)) targets to live in the same translation unit as the
+// alias, so the epoll-prefix aliases are emitted from this TU rather than
+// from netty_epoll_native.c.
+NETTY_JNI_ALIAS(io_netty_channel_epoll_NativeStaticallyReferencedJniMethods, ssizeMax,  netty_unix_limits_ssizeMax)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_NativeStaticallyReferencedJniMethods, iovMax,    netty_unix_limits_iovMax)
+NETTY_JNI_ALIAS(io_netty_channel_epoll_NativeStaticallyReferencedJniMethods, uioMaxIov, netty_unix_limits_uioMaxIov)
