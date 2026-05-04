@@ -34,7 +34,14 @@
     <unix.common.lib.dir>${project.build.directory}/unix-common-lib</unix.common.lib.dir>
     <unix.common.lib.unpacked.dir>${unix.common.lib.dir}/META-INF/native/lib</unix.common.lib.unpacked.dir>
     <unix.common.include.unpacked.dir>${unix.common.lib.dir}/META-INF/native/include</unix.common.include.unpacked.dir>
-    <jni.compiler.args.cflags>CFLAGS=-O3 -Werror -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden -I${unix.common.include.unpacked.dir}</jni.compiler.args.cflags>
+    <!-- Elide fork: ${exe.cflags.append} appends the static-jni/ tooling's
+         USER_CFLAGS (typically -flto=thin -fuse-ld=lld + per-OS / per-arch
+         flags from static-jni/cflags/) so hawtjni's autoconf conftest links
+         the bitcode-containing unix-common .a with lld instead of binutils-ld
+         (which can't read LLVM IR bitcode members). Default empty so
+         upstream behavior is unchanged. -->
+    <exe.cflags.append></exe.cflags.append>
+    <jni.compiler.args.cflags>CFLAGS=-O3 -Werror -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden -I${unix.common.include.unpacked.dir} ${exe.cflags.append}</jni.compiler.args.cflags>
     <jni.compiler.args.ldflags>LDFLAGS=-L${unix.common.lib.unpacked.dir} -Wl,--no-as-needed -lrt -ldl -Wl,--whole-archive -l${unix.common.lib.name} -Wl,--no-whole-archive</jni.compiler.args.ldflags>
     <nativeSourceDirectory>${project.basedir}/src/main/c</nativeSourceDirectory>
     <fallbackOutputDirectory>${project.build.directory}/fallback-classes</fallbackOutputDirectory>

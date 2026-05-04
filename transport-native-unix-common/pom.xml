@@ -35,6 +35,13 @@
     <exe.make>make</exe.make>
     <exe.compiler>gcc</exe.compiler>
     <exe.archiver>ar</exe.archiver>
+    <!-- Elide fork: optional flags appended to the antrun CFLAGS env in
+         every native-build profile. Default empty so upstream behavior is
+         unchanged. The static-jni/ tooling sets -Dexe.cflags.append to
+         the merged USER_CFLAGS (typically `-flto=thin` plus the per-OS /
+         per-arch flags from static-jni/cflags/) so unix-common's .o files
+         emit LLVM IR bitcode and can participate in ThinLTO downstream. -->
+    <exe.cflags.append></exe.cflags.append>
     <nativeLibName>libnetty-unix-common</nativeLibName>
     <nativeIncludeDir>${project.basedir}/src/main/c</nativeIncludeDir>
     <jniUtilIncludeDir>${project.build.directory}/netty-jni-util/</jniUtilIncludeDir>
@@ -165,7 +172,7 @@
                       <env key="LIB_DIR" value="${nativeLibOnlyDir}" />
                       <env key="OBJ_DIR" value="${nativeObjsOnlyDir}" />
                       <env key="JNI_PLATFORM" value="${jni.platform}" />
-                      <env key="CFLAGS" value="-O3 -Werror -Wno-attributes -fPIC -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden" />
+                      <env key="CFLAGS" value="-O3 -Werror -Wno-attributes -fPIC -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden ${exe.cflags.append}" />
                       <env key="LDFLAGS" value="-Wl,--no-as-needed -lrt -Wl,-platform_version,macos,10.9,10.9" />
                       <env key="LIB_NAME" value="${nativeLibName}" />
                       <!-- support for __attribute__((weak_import)) by the linker was added in 10.2 so ensure we
@@ -238,7 +245,7 @@
                       <env key="LIB_DIR" value="${nativeLibOnlyDir}" />
                       <env key="OBJ_DIR" value="${nativeObjsOnlyDir}" />
                       <env key="JNI_PLATFORM" value="${jni.platform}" />
-                      <env key="CFLAGS" value="-target arm64-apple-macos11 -O3 -Werror -Wno-attributes -fPIC -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden" />
+                      <env key="CFLAGS" value="-target arm64-apple-macos11 -O3 -Werror -Wno-attributes -fPIC -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden ${exe.cflags.append}" />
                       <env key="LDFLAGS" value="-arch arm64 -Wl,--no-as-needed -lrt -Wl,-platform_version,macos,11.0,11.0" />
                       <env key="LIB_NAME" value="${nativeLibName}" />
                       <env key="MACOSX_DEPLOYMENT_TARGET" value="11.0" />
@@ -308,7 +315,7 @@
                       <env key="LIB_DIR" value="${nativeLibOnlyDir}" />
                       <env key="OBJ_DIR" value="${nativeObjsOnlyDir}" />
                       <env key="JNI_PLATFORM" value="${jni.platform}" />
-                      <env key="CFLAGS" value="-target x86_64-apple-macos10.9 -O3 -Werror -Wno-attributes -fPIC -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden" />
+                      <env key="CFLAGS" value="-target x86_64-apple-macos10.9 -O3 -Werror -Wno-attributes -fPIC -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden ${exe.cflags.append}" />
                       <env key="LDFLAGS" value="-arch x86_64 -Wl,--no-as-needed -lrt -Wl,-platform_version,macos,10.9,10.9" />
                       <env key="LIB_NAME" value="${nativeLibName}" />
                       <env key="MACOSX_DEPLOYMENT_TARGET" value="10.9" />
@@ -380,7 +387,7 @@
                       <env key="LIB_DIR" value="${nativeLibOnlyDir}" />
                       <env key="OBJ_DIR" value="${nativeObjsOnlyDir}" />
                       <env key="JNI_PLATFORM" value="${jni.platform}" />
-                      <env key="CFLAGS" value="-O3 -Werror -Wno-attributes -fPIC -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden" />
+                      <env key="CFLAGS" value="-O3 -Werror -Wno-attributes -fPIC -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden ${exe.cflags.append}" />
                       <env key="LDFLAGS" value="-Wl,--no-as-needed -lrt" />
                       <env key="LIB_NAME" value="${nativeLibName}" />
                     </exec>
@@ -450,7 +457,7 @@
                       <env key="LIB_DIR" value="${nativeLibOnlyDir}" />
                       <env key="OBJ_DIR" value="${nativeObjsOnlyDir}" />
                       <env key="JNI_PLATFORM" value="${jni.platform}" />
-                      <env key="CFLAGS" value="-O3 -Werror -Wno-attributes -fPIC -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden" />
+                      <env key="CFLAGS" value="-O3 -Werror -Wno-attributes -fPIC -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden ${exe.cflags.append}" />
                       <env key="LDFLAGS" value="-Wl,--no-as-needed -lrt" />
                       <env key="LIB_NAME" value="${nativeLibName}" />
                     </exec>
@@ -520,7 +527,7 @@
                       <env key="LIB_DIR" value="${nativeLibOnlyDir}" />
                       <env key="OBJ_DIR" value="${nativeObjsOnlyDir}" />
                       <env key="JNI_PLATFORM" value="${jni.platform}" />
-                      <env key="CFLAGS" value="-O3 -Werror -Wno-attributes -fPIC -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden" />
+                      <env key="CFLAGS" value="-O3 -Werror -Wno-attributes -fPIC -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden ${exe.cflags.append}" />
                       <env key="LDFLAGS" value="-Wl,--no-as-needed -lrt" />
                       <env key="LIB_NAME" value="${nativeLibName}" />
                     </exec>
@@ -594,7 +601,7 @@
                       <env key="LIB_DIR" value="${nativeLibOnlyDir}" />
                       <env key="OBJ_DIR" value="${nativeObjsOnlyDir}" />
                       <env key="JNI_PLATFORM" value="${jni.platform}" />
-                      <env key="CFLAGS" value="-O3 -Werror -Wno-attributes -fPIC -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden" />
+                      <env key="CFLAGS" value="-O3 -Werror -Wno-attributes -fPIC -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden ${exe.cflags.append}" />
                       <env key="LDFLAGS" value="-Wl,--no-as-needed -lrt" />
                       <env key="LIB_NAME" value="${nativeLibName}" />
                     </exec>
@@ -668,7 +675,7 @@
                       <env key="LIB_DIR" value="${nativeLibOnlyDir}" />
                       <env key="OBJ_DIR" value="${nativeObjsOnlyDir}" />
                       <env key="JNI_PLATFORM" value="${jni.platform}" />
-                      <env key="CFLAGS" value="-O3 -Werror -Wno-attributes -fPIC -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden" />
+                      <env key="CFLAGS" value="-O3 -Werror -Wno-attributes -fPIC -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden ${exe.cflags.append}" />
                       <env key="LDFLAGS" value="-Wl,--no-as-needed -lrt" />
                       <env key="LIB_NAME" value="${nativeLibName}" />
                     </exec>
