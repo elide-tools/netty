@@ -15,7 +15,6 @@
 -ffunction-sections
 -fdata-sections
 -fstack-protector-strong
--fexperimental-relative-c++-abi-vtables
 
 # Silence clang's -Wunused-command-line-argument warning. Several upstream
 # native poms hardcode -Werror, which combines with the warning to turn
@@ -33,8 +32,10 @@
 # name at compile time, so the branch is unnecessary anyway. Threads through
 # USER_CFLAGS into every transport + tcnative static-archive build.
 -DNETTY_JNI_UTIL_BUILD_STATIC
-# Linux-only flags (-fbasic-block-sections=all, -fstack-clash-protection)
-# live in cflags/linux.txt — Apple's clang rejects them on darwin.
+# Linux-only flags (-fbasic-block-sections=all, -fstack-clash-protection,
+# -fexperimental-relative-c++-abi-vtables, -fuse-ld=lld) live in
+# cflags/linux.txt — Apple's clang rejects them on darwin or, in the
+# vtables case, emits .rtti_proxy COMDATs that MachO can't lower.
 #
 # Polly is a clang LLVM plugin that ships with neither Alpine's clang22 nor
 # Apple's clang. Re-enable in a host-specific cflags/<os>.txt only when the
