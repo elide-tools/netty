@@ -17,6 +17,14 @@
 -fstack-protector-strong
 -fexperimental-relative-c++-abi-vtables
 
+# Silence clang's -Wunused-command-line-argument warning. Several upstream
+# native poms hardcode -Werror, which combines with the warning to turn
+# benign link-only flags (e.g. -fuse-ld=lld passed during a compile-only
+# conftest) into fatal errors. -Qunused-arguments tells clang to swallow
+# those silently — equivalent to -Wno-unused-command-line-argument but the
+# canonical clang spelling.
+-Qunused-arguments
+
 # Gate out netty-jni-util's dladdr branch in JNI_OnLoad. That branch
 # discovers the loaded library's name at runtime by passing a function
 # pointer back through dladdr — which fails on a stripped statically-linked

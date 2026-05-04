@@ -18,6 +18,10 @@ set -euo pipefail
 
 NETTY_DIR="$PWD"
 STAGE="$NETTY_DIR/stage"
+# Project-local Maven cache, shared across all docker legs. Isolated from
+# the host's ~/.m2 so installer/test runs against the host repo can't
+# disturb the build cache (and vice versa). Gitignored.
+M2="$NETTY_DIR/m2"
 STATIC_JNI="$NETTY_DIR/static-jni"
 # Resolve the symlink so Docker bind-mounts attach to the real tcnative repo.
 TCNATIVE="$(cd "$NETTY_DIR/netty-tcnative" && pwd -P)"
@@ -25,7 +29,7 @@ TCNATIVE="$(cd "$NETTY_DIR/netty-tcnative" && pwd -P)"
 NETTY_SCRIPT="$STATIC_JNI/scripts/stage-natives.sh"
 TCNATIVE_SCRIPT="$STATIC_JNI/scripts/stage-natives-tcnative.sh"
 
-mkdir -p "$STAGE"
+mkdir -p "$STAGE" "$M2"
 
 banner() {
   printf '\n\033[1;36m==> %s\033[0m\n' "$*"
@@ -42,7 +46,7 @@ linux_build() {
     -v "$NETTY_DIR:/netty" \
     -v "$TCNATIVE:/netty-tcnative" \
     -v "$STAGE:/stage" \
-    -v "$HOME/.m2:/root/.m2" \
+    -v "$M2:/root/.m2" \
     -w /netty \
     --entrypoint /bin/sh \
     alpine:edge \

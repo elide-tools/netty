@@ -11,3 +11,12 @@
 # implements this for Linux/{x86,x86_64,riscv} and Linux/aarch64; Apple's
 # clang does not enable the codegen on darwin.
 -fstack-clash-protection
+
+# Force LLD as the linker. Required on Alpine + clang22 + ThinLTO: the
+# default linker clang picks up is binutils-ld (Alpine's compiler-rt
+# config), which can't read bitcode .o members from .a archives — autoconf
+# conftests then fail with `member ...(foo.o) in archive is not an object`
+# during the C-compiler-works check. lld handles bitcode natively. Apple's
+# clang on darwin uses Apple's `ld -bitcode_bundle`-aware linker so this
+# flag belongs to Linux only.
+-fuse-ld=lld
