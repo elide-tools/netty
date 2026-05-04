@@ -20,3 +20,13 @@
 # clang on darwin uses Apple's `ld -bitcode_bundle`-aware linker so this
 # flag belongs to Linux only.
 -fuse-ld=lld
+
+# Relative C++ ABI vtables — emits a `.rtti_proxy` indirection per RTTI
+# entry that the linker dedupes via COMDAT. ELF supports COMDAT (via
+# section groups) so this works on Linux clang/lld; MachO does not, and
+# clang aborts with `LLVM ERROR: MachO doesn't support COMDATs,
+# '<symbol>.rtti_proxy' cannot be lowered` when the BoringSSL build's
+# C++ test executables (decrepit_test, ssl_test, bssl, …) try to link.
+# Net effect on Linux: smaller vtables + faster startup; net effect on
+# darwin: cmake build aborts. Linux only.
+-fexperimental-relative-c++-abi-vtables
