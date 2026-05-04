@@ -2,11 +2,6 @@
 # targets Linux (linux / linux-aarch64 / linux-riscv64 profiles). Apple's
 # clang does not implement these, so they have to live outside base.txt.
 
-# Emit per-basic-block sections so the linker can reorder/discard at finer
-# granularity than per-function. Linux ELF only — clang errors out with
-# 'unsupported option' on darwin/arm64.
--fbasic-block-sections=all
-
 # Probe + clobber the unallocated stack to defeat Stack Clash attacks. clang
 # implements this for Linux/{x86,x86_64,riscv} and Linux/aarch64; Apple's
 # clang does not enable the codegen on darwin.
