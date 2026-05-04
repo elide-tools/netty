@@ -24,6 +24,7 @@
 # Static-JNI build outputs (static-jni/scripts/stage-natives*.sh)
 /stage
 /m2
+/logs
 
 # Report directories
 /reports

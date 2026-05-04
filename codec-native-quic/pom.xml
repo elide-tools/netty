@@ -43,6 +43,15 @@
     <jniLibPrefix>netty_quiche42</jniLibPrefix>
     <jniLibName>${jniLibPrefix}_${os.detected.name}_${os.detected.arch}</jniLibName>
     <staticLib.libname>${jniLibName}</staticLib.libname>
+    <!-- Elide fork: ${exe.cflags.append} appends the static-jni/ tooling's
+         USER_CFLAGS (typically -flto=thin -fuse-ld=lld + per-OS / per-arch
+         flags from static-jni/cflags/) so quic's BoringSSL + quiche-staged
+         .o files emit LLVM IR bitcode and can participate in ThinLTO
+         downstream. Default empty so upstream behavior is unchanged. -->
+    <exe.cflags.append></exe.cflags.append>
+    <!-- Elide fork: ${exe.rustflags.append} appends extra rustc flags to
+         the cargo build of the quiche crate. Default empty. -->
+    <exe.rustflags.append></exe.rustflags.append>
     <jniUtilIncludeDir>${project.build.directory}/netty-jni-util/</jniUtilIncludeDir>
     <boringsslSourceDir>${project.build.directory}/boringssl-source</boringsslSourceDir>
     <boringsslBuildDir>${boringsslSourceDir}/build-target</boringsslBuildDir>
@@ -757,8 +766,8 @@
                           <arg value="-DCMAKE_POSITION_INDEPENDENT_CODE=TRUE" />
                           <arg value="-DCMAKE_BUILD_TYPE=Release" />
                           <arg value="-DCMAKE_ASM_FLAGS=${cmakeAsmFlags}" />
-                          <arg value="-DCMAKE_C_FLAGS_RELEASE=${cmakeCFlags}" />
-                          <arg value="-DCMAKE_CXX_FLAGS_RELEASE=${cmakeCxxFlags}" />
+                          <arg value="-DCMAKE_C_FLAGS_RELEASE=${cmakeCFlags} ${exe.cflags.append}" />
+                          <arg value="-DCMAKE_CXX_FLAGS_RELEASE=${cmakeCxxFlags} ${exe.cflags.append}" />
                           <arg value="-GNinja" />
                           <arg value="${boringsslSourceDir}" />
                         </exec>
@@ -770,9 +779,8 @@
                           <arg value="-DCMAKE_BUILD_TYPE=Release" />
                           <arg value="-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded" />
                           <arg value="-DCMAKE_ASM_FLAGS=${cmakeAsmFlags}" />
-                          <arg value="-DCMAKE_C_FLAGS_RELEASE=${cmakeCFlags}" />
-                          <arg value="-DCMAKE_CXX_FLAGS_RELEASE=${cmakeCxxFlags}" />
-                          <arg value="-DCMAKE_CXX_FLAGS_RELEASE=${cmakeCxxFlags}" />
+                          <arg value="-DCMAKE_C_FLAGS_RELEASE=${cmakeCFlags} ${exe.cflags.append}" />
+                          <arg value="-DCMAKE_CXX_FLAGS_RELEASE=${cmakeCxxFlags} ${exe.cflags.append}" />
                           <arg line="${extraCmakeFlags}" />
                           <arg value="-GNinja" />
                           <arg value="${boringsslSourceDir}" />
@@ -859,7 +867,7 @@
                       <then>
                         <exec executable="cargo" failonerror="true" dir="${quicheSourceDir}" resolveexecutable="true">
                           <arg line="ndk ${cargoTarget} --platform ${androidNdkVersion} -- build -p quiche --features &quot;ffi qlog custom-client-dcid&quot; --release" />
-                          <env key="CFLAGS" value="${extraCflags}" />
+                          <env key="CFLAGS" value="${extraCflags} ${exe.cflags.append}" />
                           <env key="CXXFLAGS" value="${extraCxxflags}" />
                           <env key="QUICHE_BSSL_PATH" value="${boringsslHomeDir}/" />
                         </exec>
@@ -895,7 +903,7 @@
                             <then>
                               <exec executable="cargo" failonerror="true" dir="${quicheSourceDir}" resolveexecutable="true">
                                 <arg line="build -p quiche --features &quot;ffi qlog custom-client-dcid&quot; --release" />
-                                <env key="CFLAGS" value="${extraCflags}" />
+                                <env key="CFLAGS" value="${extraCflags} ${exe.cflags.append}" />
                                 <env key="CXXFLAGS" value="${extraCxxflags}" />
                                 <arg value="${cargoTarget}" />
                                 <env key="QUICHE_BSSL_PATH" value="${boringsslHomeDir}/" />
@@ -908,11 +916,17 @@
                           <else>
                             <exec executable="cargo" failonerror="true" dir="${quicheSourceDir}" resolveexecutable="true">
                               <arg line="build -p quiche --features &quot;ffi qlog custom-client-dcid&quot; --release" />
-                              <env key="CFLAGS" value="${extraCflags}" />
+                              <env key="CFLAGS" value="${extraCflags} ${exe.cflags.append}" />
                               <env key="CXXFLAGS" value="${extraCxxflags}" />
                               <env key="QUICHE_BSSL_PATH" value="${boringsslHomeDir}/" />
-                              <!-- Lets enable frame-pointers so we can profile better -->
-                              <env key="RUSTFLAGS" value="-Cforce-frame-pointers=yes" />
+                              <!-- Elide fork: -Clinker=clang -Clink-arg=-fuse-ld=lld so
+                                   Rust's link step uses clang + lld (which read bitcode
+                                   .a) instead of the default cc / binutils-ld combo
+                                   (which fails with "file format not recognized" on
+                                   the bitcode-containing libssl.a). ${exe.rustflags.append}
+                                   threads any extra rustc flags from the static-jni/
+                                   tooling. -->
+                              <env key="RUSTFLAGS" value="-Cforce-frame-pointers=yes -Clinker=clang -Clink-arg=-fuse-ld=lld ${exe.rustflags.append}" />
                               <env key="MACOSX_DEPLOYMENT_TARGET" value="${macosxDeploymentTarget}" />
                             </exec>
                           </else>
@@ -1009,7 +1023,7 @@
                     <filter token="CRYPTO_LIB" value="crypto" />
                     <filter token="SSL_LIB" value="ssl" />
                     <filter token="EXTRA_LDFLAGS" value="${extraLdflags}" />
-                    <filter token="EXTRA_CFLAGS" value="${extraCflags}" />
+                    <filter token="EXTRA_CFLAGS" value="${extraCflags} ${exe.cflags.append}" />
                     <copy file="src/main/native-package/m4/custom.m4.template" tofile="${templateDir}/m4/custom.m4" filtering="true" overwrite="true" verbose="true" />
                   </else>
                 </if>
