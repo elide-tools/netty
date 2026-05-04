@@ -199,6 +199,10 @@ SKIP_FLAGS=(
   -Dmaven.source.skip=true
   -Dmaven.deploy.skip=false
   -Denforcer.skip=true
+  # xml-maven-plugin's check-format goal occasionally fails to load
+  # SAXParserFactory under qemu-aarch64 emulation; skip it (a release-
+  # process formatting check, not a correctness gate).
+  -Dxml.skip=true
 )
 
 # Toolchain setup (mirrors stage-natives.sh):
@@ -339,6 +343,26 @@ if [[ "$PREP" == 1 ]]; then
   ./mvnw clean install -DskipTests "${MVN_VERBOSITY[@]}" "${SKIP_FLAGS[@]}" -pl 'openssl-classes'
 fi
 
+# Forwarded as Maven properties so BoringSSL's cmake invocation and APR's
+# configure CFLAGS inherit our LTO + bitcode-indexed-archive choices:
+#   exe.cflags.append → appended to BoringSSL's cmakeCFlags / cmakeCxxFlags
+#                       and to APR's configure CFLAGS in tcnative parent
+#                       pom.xml. USER_CFLAGS already contains -flto=thin
+#                       from static-jni/cflags/base.txt.
+#   exe.archiver     → AR override (where applicable) so the resulting .a
+#                       is bitcode-indexed (default `ar` doesn't know about
+#                       the .llvmbc section); STATIC_AR is llvm-ar when
+#                       available.
+EXTRA_BUILD_PROPS=(
+  "-Dexe.cflags.append=$USER_CFLAGS"
+  "-Dexe.archiver=$STATIC_AR"
+  # Force the compiler to clang since USER_CFLAGS contains clang-specific
+  # flags. tcnative's profiles already set clang in some places but the
+  # default + several inherit chains can fall back to gcc; pass it
+  # everywhere defensively.
+  "-Dexe.compiler=$STATIC_CC"
+)
+
 # id::layout::url — the legacy 3-token form is required by maven-deploy-plugin
 # 2.x, which tcnative pins. Newer (3.x) accepts both.
 DEPLOY_REPO="local::default::file://$STAGE"
@@ -363,6 +387,7 @@ for build in "${BUILDS[@]}"; do
   (
     cd "$module"
     mvn_args=(clean deploy -DskipTests "${MVN_VERBOSITY[@]}" "${SKIP_FLAGS[@]}"
+              "${EXTRA_BUILD_PROPS[@]}"
               ${APR_OVERRIDE[@]+"${APR_OVERRIDE[@]}"}
               "-DaltDeploymentRepository=$DEPLOY_REPO")
     if [[ -n "$profile" ]]; then

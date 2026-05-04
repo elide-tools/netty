@@ -366,6 +366,32 @@ SKIP_FLAGS=(
   -Dnohttp.skip=true
   -Dforbiddenapis.skip=true
   -Drevapi.skip=true
+  # xml-maven-plugin's check-format goal occasionally fails to load
+  # SAXParserFactory under qemu-aarch64 emulation (Java's classloader
+  # misbehaves on certain syscall translations). The goal is a release-
+  # process formatting check, not a correctness gate, so always skip.
+  -Dxml.skip=true
+)
+
+# Forwarded as Maven properties so transport-native-unix-common's antrun
+# blocks inherit our LTO + bitcode-indexed-archive choices:
+#   exe.cflags.append → appended to <env key="CFLAGS"> values in 8 antrun
+#                       blocks (linux/mac/aarch64/riscv/freebsd/openbsd).
+#                       USER_CFLAGS already contains -flto=thin from
+#                       static-jni/cflags/base.txt.
+#   exe.archiver     → AR override for unix-common's .a so the resulting
+#                       archive is bitcode-indexed (default `ar` doesn't
+#                       know about the .llvmbc section); STATIC_AR is
+#                       llvm-ar when available.
+EXTRA_BUILD_PROPS=(
+  "-Dexe.cflags.append=$USER_CFLAGS"
+  "-Dexe.archiver=$STATIC_AR"
+  # Upstream's linux profile auto-activates by OS but doesn't override
+  # exe.compiler from the parent default of `gcc`. Our USER_CFLAGS contains
+  # clang-specific flags (-fexperimental-relative-c++-abi-vtables,
+  # -fbasic-block-sections=all) so we have to force the compiler to clang
+  # explicitly. STATIC_CC is `clang` on Alpine and Apple's clang on Mac.
+  "-Dexe.compiler=$STATIC_CC"
 )
 
 if [[ "$PREP" == 1 ]]; then
@@ -388,6 +414,7 @@ if [[ "$PREP" == 1 ]]; then
     mac-intel-cross-compile|mac-m1-cross-compile) PREP_PROFILE_ARGS=("-P$MVN_PROFILE") ;;
   esac
   ./mvnw ${PREP_PROFILE_ARGS[@]+"${PREP_PROFILE_ARGS[@]}"} clean install -DskipTests "${MVN_VERBOSITY[@]}" "${SKIP_FLAGS[@]}" \
+    "${EXTRA_BUILD_PROPS[@]}" \
     -pl '!all,!transport-native-epoll,!transport-native-kqueue,!transport-native-io_uring,!codec-native-quic,!resolver-dns-native-macos,!testsuite,!testsuite-autobahn,!testsuite-common,!testsuite-http2,!testsuite-jpms,!testsuite-karaf,!testsuite-native,!testsuite-native-image,!testsuite-native-image-client,!testsuite-native-image-client-runtime-init,!testsuite-osgi,!testsuite-shading'
 fi
 
@@ -407,6 +434,7 @@ for m in "${MODULES[@]}"; do
     # passes a hardcoded `clang` that doesn't exist on the gcc-only path).
     CC="$STATIC_CC" LTO_FLAGS="$STATIC_LTO_FLAGS" USER_CFLAGS="$USER_CFLAGS" \
     ../mvnw "-P$MVN_PROFILE" deploy -DskipTests "${MVN_VERBOSITY[@]}" "${SKIP_FLAGS[@]}" \
+      "${EXTRA_BUILD_PROPS[@]}" \
       "-DstaticLib.cc=$STATIC_CC" \
       "-DaltDeploymentRepository=$DEPLOY_REPO"
   )
