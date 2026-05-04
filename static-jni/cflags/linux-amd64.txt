@@ -1,0 +1,8 @@
+# Linux + amd64 only — appended after base.txt, linux.txt, and amd64.txt.
+
+# Emit per-basic-block sections so the linker can reorder/discard at finer
+# granularity than per-function. clang's `=all` form is gated to x86 ELF;
+# AArch64 clang on Alpine rejects `all` ('invalid value all') even though
+# it accepts `=labels`. Darwin's clang doesn't implement BB sections at
+# all. Pinning this to linux-amd64 avoids both failure modes.
+-fbasic-block-sections=all

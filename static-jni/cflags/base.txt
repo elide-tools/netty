@@ -8,8 +8,9 @@
 # Sibling files in this directory layer on top of base.txt:
 #   linux.txt / darwin.txt / openbsd.txt / freebsd.txt / windows.txt — per-OS
 #   amd64.txt / arm64.txt / riscv64.txt                               — per-arch
-# The script picks the matching OS and arch file based on the build profile;
-# all matching files are concatenated in order: base → os → arch.
+#   linux-amd64.txt / linux-arm64.txt / darwin-arm64.txt / …          — per OS+arch
+# The script picks the matching OS, arch, and OS-arch files based on the
+# build profile; matching files concatenate in order: base → os → arch → os-arch.
 
 -flto=thin
 -ffunction-sections
@@ -32,10 +33,12 @@
 # name at compile time, so the branch is unnecessary anyway. Threads through
 # USER_CFLAGS into every transport + tcnative static-archive build.
 -DNETTY_JNI_UTIL_BUILD_STATIC
-# Linux-only flags (-fbasic-block-sections=all, -fstack-clash-protection,
-# -fexperimental-relative-c++-abi-vtables, -fuse-ld=lld) live in
-# cflags/linux.txt — Apple's clang rejects them on darwin or, in the
-# vtables case, emits .rtti_proxy COMDATs that MachO can't lower.
+# Linux-only flags (-fstack-clash-protection, -fexperimental-relative-c++-
+# abi-vtables, -fuse-ld=lld) live in cflags/linux.txt — Apple's clang
+# rejects them on darwin or, in the vtables case, emits .rtti_proxy
+# COMDATs that MachO can't lower. -fbasic-block-sections=all is narrower
+# still: x86 ELF only (clang's AArch64 driver rejects 'all'), so it lives
+# in cflags/linux-amd64.txt.
 #
 # Polly is a clang LLVM plugin that ships with neither Alpine's clang22 nor
 # Apple's clang. Re-enable in a host-specific cflags/<os>.txt only when the
