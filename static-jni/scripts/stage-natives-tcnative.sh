@@ -309,16 +309,20 @@ else
   STATIC_LTO_FLAGS=""
 fi
 
-# Read cflags/<base|os|arch>.txt from the netty-static-jni repo root and thread
+# Read cflags/{base,$os,$arch,$os-$arch}.txt from the static-jni dir and thread
 # their non-comment, non-blank lines into every Makefile.static invocation as
-# USER_CFLAGS. Lets us tweak CFLAGS once per scope (all builds / per-OS /
-# per-arch) and have it apply across every platform/target in this build.
+# USER_CFLAGS. Four scopes, layered most-general first so later scopes win:
+#   base.txt           — every build (any os, any arch)
+#   $os.txt            — every build on this OS (e.g. all linux)
+#   $arch.txt          — every build of this arch (e.g. all arm64)
+#   $os-$arch.txt      — only this OS+arch combo (e.g. linux+amd64)
 USER_CFLAGS=""
 CFLAGS_LOADED=()
 for cflags_file in \
     "$script_parent/cflags/base.txt" \
     "$script_parent/cflags/$CFLAGS_OS.txt" \
-    "$script_parent/cflags/$CFLAGS_ARCH.txt"; do
+    "$script_parent/cflags/$CFLAGS_ARCH.txt" \
+    "$script_parent/cflags/$CFLAGS_OS-$CFLAGS_ARCH.txt"; do
   [[ -f "$cflags_file" ]] || continue
   flags=$(awk '!/^[[:space:]]*#/ && !/^[[:space:]]*$/' "$cflags_file" | tr '\n' ' ')
   flags="${flags%% }"
