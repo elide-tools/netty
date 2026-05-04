@@ -367,17 +367,13 @@ EXTRA_BUILD_PROPS=(
 # 2.x, which tcnative pins. Newer (3.x) accepts both.
 DEPLOY_REPO="local::default::file://$STAGE"
 
-# On Alpine, use the system-installed APR (apr-dev provides /usr/lib/libapr-1.a)
-# instead of having tcnative download + autotools-build apr-1.7.x from source.
-# APR's m4 macros don't expand cleanly under autoconf 2.73 + libtool 2.6 on
-# Alpine, so the source build emits a syntactically broken configure script.
-# `linkStatic=false` skips the source-apr / build-apr antrun executions; the
-# downstream consumers (configure --with-apr, Makefile.static) read aprHome,
-# which we point at /usr so they pick up the system APR's static archive.
+# Source-build APR (default) so the .o files participate in ThinLTO via
+# our USER_CFLAGS plumbing. The system-installed apr-dev package is glibc/ELF
+# and not under our control, so falling back to it (the prior
+# linkStatic=false / aprHome=/usr override) leaves ~85 .o members as ELF in
+# the deliverable. APR_OVERRIDE is left as an empty array so future
+# environments can re-introduce a fallback if needed.
 APR_OVERRIDE=()
-if command -v apk >/dev/null 2>&1; then
-  APR_OVERRIDE=(-DlinkStatic=false -DaprHome=/usr)
-fi
 
 for build in "${BUILDS[@]}"; do
   module="${build%%:*}"
