@@ -1,0 +1,3 @@
+[submodule "cflags"]
+	path = static-jni/cflags
+	url = git@github.com:elide-dev/cflags.git
