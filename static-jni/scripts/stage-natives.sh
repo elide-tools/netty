@@ -336,6 +336,15 @@ else
   STATIC_LTO_FLAGS=""
 fi
 
+# macOS: build regular Mach-O objects (no ThinLTO). The Mach-O NETTY_JNI_ALIAS
+# `.set` aliases resolve at assembly time against the local impl symbol; under
+# ThinLTO the impl is internalized and the alias dangles, so SVM fails at load
+# with "Symbol not found: _Java_…". (Linux/ELF keeps LTO — it uses an IR-level
+# __attribute__((alias)), which is LTO-safe.)
+if [[ "$CFLAGS_OS" == "darwin" ]]; then
+  STATIC_LTO_FLAGS=""
+fi
+
 # Read cflags/{base,$os,$arch,$os-$arch}.txt from the static-jni dir and thread
 # their non-comment, non-blank lines into every Makefile.static invocation as
 # USER_CFLAGS. Four scopes, layered most-general first so later scopes win:

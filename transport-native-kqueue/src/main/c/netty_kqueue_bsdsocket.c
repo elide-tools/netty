@@ -351,14 +351,9 @@ error:
 // JNI Method Registration Table End
 
 #ifdef NETTY_BUILD_STATIC
-// Static-JNI aliases for bsdsocket targets. The first four belong to the
-// KQueueStaticallyReferencedJniMethods Java class but their C functions live
-// here, so the aliases must too (Mach-O same-TU constraint).
-NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, connectResumeOnReadWrite, netty_kqueue_bsdsocket_connectResumeOnReadWrite)
-NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, connectDataIdempotent,    netty_kqueue_bsdsocket_connectDataIdempotent)
-NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, fastOpenClient,           netty_kqueue_bsdsocket_fastOpenClient)
-NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, fastOpenServer,           netty_kqueue_bsdsocket_fastOpenServer)
-
+// Static-JNI aliases for BsdSocket targets. (The four KQueueStaticallyReferenced
+// connect/fastOpen methods are aliased in netty_kqueue_native.c, where their C
+// impls live — the Mach-O `.set` alias must be in the impl's translation unit.)
 NETTY_JNI_ALIAS(io_netty_channel_kqueue_BsdSocket, setAcceptFilter,    netty_kqueue_bsdsocket_setAcceptFilter)
 NETTY_JNI_ALIAS(io_netty_channel_kqueue_BsdSocket, setTcpNoPush,       netty_kqueue_bsdsocket_setTcpNoPush)
 NETTY_JNI_ALIAS(io_netty_channel_kqueue_BsdSocket, setSndLowAt,        netty_kqueue_bsdsocket_setSndLowAt)
