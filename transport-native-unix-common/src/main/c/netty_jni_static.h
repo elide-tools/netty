@@ -46,7 +46,16 @@
  *   internal_fn — Existing C function name (e.g. netty_kqueue_native_kqueueCreate).
  */
 #if defined(__APPLE__)
+// Mach-O rejects IR-level __attribute__((alias)) (the ELF branch below), so we
+// emit a `.set` assembler alias to `internal_fn`. Two requirements for it to
+// bind on clang >= 22 (clang 21.1.x happened to satisfy both implicitly): the
+// impl must (1) be built without ThinLTO on darwin (see stage-natives*.sh), and
+// (2) survive -O3 dead-stripping even when its address is taken nowhere else in
+// C (e.g. *StaticallyReferencedJniMethods constants). Anchor its address in a
+// `used` global to guarantee (2). Requires the alias to sit in the impl's TU.
 #  define NETTY_JNI_ALIAS(java_class, method, internal_fn) \
+       __attribute__((used)) static __typeof__(&internal_fn) const \
+           __netty_jni_keep_##java_class##_##method = &internal_fn; \
        __asm__(".globl _Java_" #java_class "_" #method "\n" \
                ".set _Java_" #java_class "_" #method ", _" #internal_fn);
 #else

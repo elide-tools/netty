@@ -387,6 +387,13 @@ NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, ev
 NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, noteReadClosed,   netty_kqueue_native_noteReadClosed)
 NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, noteConnReset,    netty_kqueue_native_noteConnReset)
 NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, noteDisconnected, netty_kqueue_native_noteDisconnected)
+// These four impls live in this TU (see above) even though the JNI class is the
+// same KQueueStaticallyReferencedJniMethods — the Mach-O `.set` alias must be in
+// the impl's translation unit, so the aliases belong here, not in bsdsocket.c.
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, connectResumeOnReadWrite, netty_kqueue_bsdsocket_connectResumeOnReadWrite)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, connectDataIdempotent,    netty_kqueue_bsdsocket_connectDataIdempotent)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, fastOpenClient,           netty_kqueue_bsdsocket_fastOpenClient)
+NETTY_JNI_ALIAS(io_netty_channel_kqueue_KQueueStaticallyReferencedJniMethods, fastOpenServer,           netty_kqueue_bsdsocket_fastOpenServer)
 
 NETTY_JNI_ALIAS(io_netty_channel_kqueue_Native, kqueueCreate,           netty_kqueue_native_kqueueCreate)
 NETTY_JNI_ALIAS(io_netty_channel_kqueue_Native, keventTriggerUserEvent, netty_kqueue_native_keventTriggerUserEvent)

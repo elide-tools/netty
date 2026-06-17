@@ -309,6 +309,12 @@ else
   STATIC_LTO_FLAGS=""
 fi
 
+# macOS: build regular Mach-O objects (no ThinLTO) so the Mach-O NETTY_JNI_ALIAS
+# `.set` aliases resolve at assembly time. See stage-natives.sh for detail.
+if [[ "$CFLAGS_OS" == "darwin" ]]; then
+  STATIC_LTO_FLAGS=""
+fi
+
 # Read cflags/{base,$os,$arch,$os-$arch}.txt from the static-jni dir and thread
 # their non-comment, non-blank lines into every Makefile.static invocation as
 # USER_CFLAGS. Four scopes, layered most-general first so later scopes win:
