@@ -234,7 +234,7 @@ if command -v apk >/dev/null 2>&1; then
       build-base clang22 clang22-extra-tools llvm22 lld22 compiler-rt \
       cmake samurai patch perl perl-utils python3 \
       autoconf automake libtool make git rsync which file linux-headers musl-dev \
-      libstdc++-dev apr-dev openssl-dev openjdk17-jdk rust cargo >/dev/null 2>&1 || true
+      libstdc++-dev apr-dev openssl-dev openjdk17-jdk rust cargo go >/dev/null 2>&1 || true
     # Alpine ships ninja under `samurai` (the package's binary is `samu`); also
     # try `ninja-build` alias for tools that hardcode that name.
     [[ -x /usr/bin/samu && ! -e /usr/bin/ninja ]] && ln -sf /usr/bin/samu /usr/bin/ninja

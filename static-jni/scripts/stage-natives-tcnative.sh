@@ -218,7 +218,7 @@ if command -v apk >/dev/null 2>&1; then
       build-base clang22 clang22-extra-tools llvm22 lld22 compiler-rt \
       cmake samurai patch perl perl-utils python3 \
       autoconf automake libtool make git rsync which file linux-headers musl-dev \
-      libstdc++-dev apr-dev openssl-dev openjdk17-jdk rust cargo >/dev/null 2>&1 || true
+      libstdc++-dev apr-dev openssl-dev openjdk17-jdk rust cargo go >/dev/null 2>&1 || true
     [[ -x /usr/bin/samu && ! -e /usr/bin/ninja ]] && ln -sf /usr/bin/samu /usr/bin/ninja
     [[ -x /usr/bin/ninja && ! -e /usr/bin/ninja-build ]] && ln -sf /usr/bin/ninja /usr/bin/ninja-build
   fi
