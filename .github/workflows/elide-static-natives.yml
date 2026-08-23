@@ -1,0 +1,178 @@
+# Elide fork: build the Static-JNI `<classifier>-static` JARs consumed by WHIPLASH.
+#
+# Produces `.a` archives for linux-amd64, linux-arm64 and macos-arm64 and uploads
+# each leg's Maven-layout stage tree as an artifact. Merge the artifacts and
+# publish with `rclone copy stage/ elide:elide-maven/netty/<ver>.<rev>/`.
+#
+# Linux legs run Alpine edge + clang + musl inside Docker (natively per arch — no
+# QEMU) because a glibc-built archive references `__strdup`/`__isnan` and will not
+# link against musl downstream. The macOS leg runs natively against Apple clang.
+name: Elide Static Natives
+
+on:
+  push:
+    branches: ["elide-**"]
+  workflow_dispatch:
+    inputs:
+      tcnative_ref:
+        description: "elide-tools/netty-tcnative ref to build against"
+        required: false
+        default: "elide-2.0.81.Final"
+
+permissions:
+  contents: read
+
+env:
+  TCNATIVE_REF: ${{ github.event.inputs.tcnative_ref || 'elide-2.0.81.Final' }}
+  # Only these modules are consumed downstream. codec-native-quic and
+  # resolver-dns-native-macos build but are unused; skipping them avoids the
+  # slow and fragile BoringSSL/quiche legs.
+  NETTY_MODULES_LINUX: epoll,io_uring
+  NETTY_MODULES_MAC: kqueue
+
+jobs:
+  linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - leg: linux-amd64
+            runner: ubuntu-24.04
+            docker_platform: linux/amd64
+            netty_profile: linux
+            tcnative_platform: linux-x86_64
+          - leg: linux-arm64
+            runner: ubuntu-24.04-arm
+            docker_platform: linux/arm64
+            netty_profile: linux-aarch64
+            tcnative_platform: linux-aarch64
+    name: ${{ matrix.leg }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    steps:
+      - name: Checkout netty fork
+        uses: actions/checkout@v5
+        with:
+          path: netty
+
+      - name: Checkout netty-tcnative fork
+        uses: actions/checkout@v5
+        with:
+          repository: elide-tools/netty-tcnative
+          ref: ${{ env.TCNATIVE_REF }}
+          path: netty-tcnative
+
+      - name: Init shared cflags submodule
+        working-directory: netty
+        run: |
+          # The submodule URL is SSH; rewrite to HTTPS (elide-dev/cflags is public).
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git submodule update --init static-jni/cflags
+          ls -l static-jni/cflags/
+
+      - name: Build netty transports (${{ matrix.netty_profile }})
+        run: |
+          mkdir -p stage m2
+          docker run --rm --platform=${{ matrix.docker_platform }} \
+            -e NETTY_DIR=/netty -e TCNATIVE_DIR=/netty-tcnative \
+            -e MODULES_FILTER="$NETTY_MODULES_LINUX" \
+            -e VERBOSE=1 \
+            -v "$PWD/netty:/netty" \
+            -v "$PWD/netty-tcnative:/netty-tcnative" \
+            -v "$PWD/stage:/stage" \
+            -v "$PWD/m2:/root/.m2" \
+            -w /netty --entrypoint /bin/sh alpine:edge \
+            -c 'apk add --no-cache --quiet bash && /netty/static-jni/scripts/stage-natives.sh /stage ${{ matrix.netty_profile }} --prep-deps'
+
+      - name: Build netty-tcnative boringssl-static (${{ matrix.tcnative_platform }})
+        run: |
+          docker run --rm --platform=${{ matrix.docker_platform }} \
+            -e NETTY_DIR=/netty -e TCNATIVE_DIR=/netty-tcnative \
+            -e VERBOSE=1 \
+            -v "$PWD/netty:/netty" \
+            -v "$PWD/netty-tcnative:/netty-tcnative" \
+            -v "$PWD/stage:/stage" \
+            -v "$PWD/m2:/root/.m2" \
+            -w /netty --entrypoint /bin/sh alpine:edge \
+            -c 'apk add --no-cache --quiet bash && /netty/static-jni/scripts/stage-natives-tcnative.sh /stage ${{ matrix.tcnative_platform }} --prep-deps'
+
+      - name: Normalise ownership
+        run: sudo chown -R "$(id -u):$(id -g)" stage
+
+      - name: Summarise staged artifacts
+        run: find stage -name '*-static.jar' | sort
+
+      - name: Upload stage tree
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage-${{ matrix.leg }}
+          path: stage/
+          if-no-files-found: error
+          retention-days: 14
+
+  macos-arm64:
+    name: macos-arm64
+    runs-on: macos-15
+    timeout-minutes: 120
+    steps:
+      - name: Checkout netty fork
+        uses: actions/checkout@v5
+        with:
+          path: netty
+
+      - name: Checkout netty-tcnative fork
+        uses: actions/checkout@v5
+        with:
+          repository: elide-tools/netty-tcnative
+          ref: ${{ env.TCNATIVE_REF }}
+          path: netty-tcnative
+
+      - name: Init shared cflags submodule
+        working-directory: netty
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git submodule update --init static-jni/cflags
+          ls -l static-jni/cflags/
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install native toolchain deps
+        run: |
+          brew bundle --file=netty-tcnative/Brewfile
+          # tcnative's mac profile hard-codes /opt/homebrew/opt/openssl@<ver>/include
+          # (openssl.lib.version=3.6); Homebrew's `openssl` formula lands at
+          # openssl@3. Alias it so the path resolves if a module reads it.
+          ver="$(sed -n 's|.*<openssl.lib.version>\(.*\)</openssl.lib.version>.*|\1|p' netty-tcnative/pom.xml | head -1)"
+          if [ -n "$ver" ] && [ ! -e "/opt/homebrew/opt/openssl@${ver}" ] && [ -e /opt/homebrew/opt/openssl@3 ]; then
+            ln -sfn /opt/homebrew/opt/openssl@3 "/opt/homebrew/opt/openssl@${ver}"
+          fi
+
+      - name: Build netty transports (mac)
+        env:
+          MODULES_FILTER: ${{ env.NETTY_MODULES_MAC }}
+          VERBOSE: "1"
+        run: |
+          mkdir -p "$PWD/stage"
+          netty/static-jni/scripts/stage-natives.sh "$PWD/stage" mac --prep-deps
+        # NETTY_DIR resolves to the netty/ checkout via the script's grandparent rule.
+
+      - name: Build netty-tcnative boringssl-static (mac-aarch64)
+        env:
+          TCNATIVE_DIR: ${{ github.workspace }}/netty-tcnative
+          VERBOSE: "1"
+        run: netty/static-jni/scripts/stage-natives-tcnative.sh "$PWD/stage" mac-aarch64 --prep-deps
+
+      - name: Summarise staged artifacts
+        run: find stage -name '*-static.jar' | sort
+
+      - name: Upload stage tree
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage-macos-arm64
+          path: stage/
+          if-no-files-found: error
+          retention-days: 14
