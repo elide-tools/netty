@@ -70,6 +70,11 @@ jobs:
           git submodule update --init static-jni/cflags
           ls -l static-jni/cflags/
 
+      - name: Check NETTY_JNI_ALIAS coverage
+        run: |
+          python3 netty/static-jni/scripts/check-jni-aliases.py \
+            --netty-dir netty --tcnative-dir netty-tcnative
+
       - name: Build netty transports (${{ matrix.netty_profile }})
         run: |
           mkdir -p stage m2
@@ -150,6 +155,11 @@ jobs:
           if [ -n "$ver" ] && [ ! -e "/opt/homebrew/opt/openssl@${ver}" ] && [ -e /opt/homebrew/opt/openssl@3 ]; then
             ln -sfn /opt/homebrew/opt/openssl@3 "/opt/homebrew/opt/openssl@${ver}"
           fi
+
+      - name: Check NETTY_JNI_ALIAS coverage
+        run: |
+          python3 netty/static-jni/scripts/check-jni-aliases.py \
+            --netty-dir netty --tcnative-dir netty-tcnative
 
       - name: Build netty transports (mac)
         env:
