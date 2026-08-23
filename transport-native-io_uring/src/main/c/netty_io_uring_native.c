@@ -900,6 +900,7 @@ static const jint method_table_size =
 // pointing at the existing internal functions, so a JVM that resolves natives
 // via dlsym on the program image (the static-link path) finds them directly.
 // Mirrors the JNINativeMethod tables above; keep in sync when methods change.
+NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, iosqeHardlink,                     netty_io_uring_iosqeHardlink)
 NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, sockNonblock,                      netty_io_uring_sockNonblock)
 NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, sockCloexec,                       netty_io_uring_sockCloexec)
 NETTY_JNI_ALIAS(io_netty_channel_uring_NativeStaticallyReferencedJniMethods, afInet,                            netty_io_uring_afInet)
@@ -986,6 +987,7 @@ NETTY_JNI_ALIAS(io_netty_channel_uring_Native, getFd0,                       net
 NETTY_JNI_ALIAS(io_netty_channel_uring_Native, ioUringRegisterBufRing,       netty_io_uring_register_buf_ring)
 NETTY_JNI_ALIAS(io_netty_channel_uring_Native, ioUringUnRegisterBufRing,     netty_io_uring_unregister_buf_ring)
 NETTY_JNI_ALIAS(io_netty_channel_uring_Native, ioUringBufRingSize,           netty_io_uring_buf_ring_size)
+NETTY_JNI_ALIAS(io_netty_channel_uring_Native, isUnixDomainSocketInqSupported, netty_io_uring_is_unix_domain_socket_inq_supported)
 #endif
 
 static jint netty_iouring_native_JNI_OnLoad(JNIEnv* env, const char* packagePrefix) {
