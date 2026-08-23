@@ -104,6 +104,9 @@ jobs:
       - name: Normalise ownership
         run: sudo chown -R "$(id -u):$(id -g)" stage
 
+      - name: Check archive object format
+        run: python3 netty/static-jni/scripts/check-archive-format.py --os linux stage
+
       - name: Summarise staged artifacts
         run: find stage -name '*-static.jar' | sort
 
@@ -175,6 +178,12 @@ jobs:
           TCNATIVE_DIR: ${{ github.workspace }}/netty-tcnative
           VERBOSE: "1"
         run: netty/static-jni/scripts/stage-natives-tcnative.sh "$PWD/stage" mac-aarch64 --prep-deps
+
+      # The decisive macOS gate: bitcode members mean ThinLTO internalised the
+      # NETTY_JNI_ALIAS implementations and the Mach-O `.set` aliases dangle,
+      # which only surfaces as a dyld `Symbol not found` in a downstream image.
+      - name: Check archive object format
+        run: python3 netty/static-jni/scripts/check-archive-format.py --os darwin stage
 
       - name: Summarise staged artifacts
         run: find stage -name '*-static.jar' | sort

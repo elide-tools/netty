@@ -366,6 +366,28 @@ for cflags_file in \
   USER_CFLAGS="${USER_CFLAGS:+$USER_CFLAGS }$flags"
   CFLAGS_LOADED+=("$(basename "$cflags_file")")
 done
+
+# macOS: strip any -flto* that the cflags files contributed. Clearing
+# STATIC_LTO_FLAGS above is not sufficient — USER_CFLAGS is threaded into the
+# build independently, and cflags/base.txt carries `-flto=thin` while
+# cflags/darwin.txt does not cancel it. Leaving it in place yields LLVM bitcode
+# members whose NETTY_JNI_ALIAS implementations ThinLTO internalizes at the
+# final link, so the Mach-O `.set` aliases dangle and the archive fails only at
+# dyld time with `Symbol not found: _Java_io_netty_...`. Verified by
+# check-archive-format.py.
+if [[ "$CFLAGS_OS" == "darwin" && -n "$USER_CFLAGS" ]]; then
+  _no_lto=""
+  for _f in $USER_CFLAGS; do
+    case "$_f" in
+      -flto|-flto=*|-fthin-link-bitcode=*) continue ;;
+    esac
+    _no_lto="${_no_lto:+$_no_lto }$_f"
+  done
+  if [[ "$_no_lto" != "$USER_CFLAGS" ]]; then
+    echo "==> darwin: dropped -flto from USER_CFLAGS (Mach-O aliases require no ThinLTO)"
+    USER_CFLAGS="$_no_lto"
+  fi
+fi
 if [[ -n "$USER_CFLAGS" ]]; then
   echo "==> User CFLAGS from ${CFLAGS_LOADED[*]}: $USER_CFLAGS"
 fi
