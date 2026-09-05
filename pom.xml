@@ -782,7 +782,10 @@
     <multiReleaseJar>true</multiReleaseJar>
     <javaModuleName />
     <skipStaticJar>true</skipStaticJar>
-    <staticLib.classifier>${jni.classifier}-static</staticLib.classifier>
+    <!-- Linux release builds set this to -musl or -glibc. It stays empty for
+         non-Linux targets and for compatibility with ad-hoc upstream builds. -->
+    <staticLib.libcQualifier />
+    <staticLib.classifier>${jni.classifier}${staticLib.libcQualifier}-static</staticLib.classifier>
     <staticLib.includeDir>${nativeSourceDirectory}</staticLib.includeDir>
     <staticLib.archivePath>${project.build.directory}/native-build/.libs/lib${staticLib.libname}.a</staticLib.archivePath>
   </properties>

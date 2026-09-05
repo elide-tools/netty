@@ -47,6 +47,8 @@ Usage: $0 <stage-dir> <platform> [--prep-deps]
 
 Environment:
   TCNATIVE_DIR   Path to the netty-tcnative checkout. Default: $TCNATIVE_DIR
+  STATIC_LIBC    Linux libc qualifier: musl or glibc. If unset, detected
+                 from the build host. Rejected when it disagrees with it.
   VERBOSE        When non-empty, drop \`mvn -q\` so make/clang output reaches
                  the terminal — useful for diagnosing static-archive build
                  failures.
@@ -133,6 +135,37 @@ case "$PLATFORM" in
     ;;
 esac
 
+# A Linux static archive is tied to the libc headers and symbols it was built
+# against. Detect the build host and make that ABI part of the Maven classifier
+# so musl and glibc artifacts can coexist in one staged repository.
+if [[ "$CFLAGS_OS" == "linux" ]]; then
+  if find /lib -maxdepth 1 -name 'ld-musl-*.so.1' -print -quit 2>/dev/null | grep -q .; then
+    DETECTED_LIBC=musl
+  elif getconf GNU_LIBC_VERSION >/dev/null 2>&1; then
+    DETECTED_LIBC=glibc
+  else
+    echo "Unable to detect Linux libc (expected musl or glibc)" >&2
+    exit 1
+  fi
+  STATIC_LIBC="${STATIC_LIBC:-$DETECTED_LIBC}"
+  case "$STATIC_LIBC" in
+    musl|glibc) ;;
+    *) echo "Unsupported STATIC_LIBC='$STATIC_LIBC' (expected musl or glibc)" >&2; exit 1 ;;
+  esac
+  if [[ "$STATIC_LIBC" != "$DETECTED_LIBC" ]]; then
+    echo "STATIC_LIBC='$STATIC_LIBC' does not match detected host libc '$DETECTED_LIBC'" >&2
+    exit 1
+  fi
+  STATIC_LIBC_QUALIFIER="-$STATIC_LIBC"
+  echo "==> Linux libc: $STATIC_LIBC (static classifier qualifier: $STATIC_LIBC_QUALIFIER)"
+else
+  if [[ -n "${STATIC_LIBC:-}" ]]; then
+    echo "STATIC_LIBC is only valid for Linux builds" >&2
+    exit 1
+  fi
+  STATIC_LIBC_QUALIFIER=""
+fi
+
 # Canonicalize STAGE so altDeploymentRepository receives an absolute file URL.
 mkdir -p "$STAGE"
 STAGE="$(cd "$STAGE" && pwd)"
@@ -153,6 +186,9 @@ if [[ -n "${TCNATIVE_REWORK:-}" ]] || \
   if ! command -v rsync >/dev/null 2>&1; then
     if command -v apk >/dev/null 2>&1; then
       apk add --no-cache --quiet rsync >/dev/null 2>&1 || true
+    elif command -v apt-get >/dev/null 2>&1; then
+      apt-get update -qq
+      apt-get install -y -qq --no-install-recommends rsync >/dev/null
     elif command -v yum >/dev/null 2>&1; then
       yum install -y -q rsync >/dev/null 2>&1 || true
     fi
@@ -211,7 +247,8 @@ SKIP_FLAGS=(
 #     symbol references like `__strdup` / `__isnan` that show up in the static
 #     .a when built against glibc and break downstream musl links. Native arm64
 #     under Apple Silicon Docker; emulated for amd64.
-#   - AlmaLinux 9 / CentOS 7 paths retained as historical glibc fallbacks.
+#   - Debian provides the glibc counterpart with clang/LLVM and Go 1.24+.
+#     AlmaLinux 9 / CentOS 7 paths remain historical fallbacks.
 if command -v apk >/dev/null 2>&1; then
   if ! command -v clang-22 >/dev/null 2>&1; then
     apk add --no-cache --quiet \
@@ -235,6 +272,21 @@ if command -v apk >/dev/null 2>&1; then
   [[ -x /usr/bin/ld.lld-22 && ! -e /usr/local/bin/ld.lld ]] && \
     ln -sf /usr/bin/ld.lld-22 /usr/local/bin/ld.lld
   [[ -z "${JAVA_HOME:-}" && -d /usr/lib/jvm/java-17-openjdk ]] && export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
+elif command -v apt-get >/dev/null 2>&1; then
+  if ! command -v clang >/dev/null 2>&1 || ! command -v javac >/dev/null 2>&1 || \
+     ! command -v go >/dev/null 2>&1; then
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -qq
+    apt-get install -y -qq --no-install-recommends \
+      build-essential clang llvm lld cmake ninja-build patch perl python3 \
+      autoconf automake libtool libtool-bin make git rsync which file linux-libc-dev \
+      libapr1-dev libssl-dev default-jdk rustc cargo golang-go \
+      zip unzip >/dev/null
+  fi
+  if [[ -z "${JAVA_HOME:-}" ]]; then
+    JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(command -v javac)")")")"
+    export JAVA_HOME
+  fi
 elif command -v yum >/dev/null 2>&1; then
   if [[ -f /etc/almalinux-release || -f /etc/rocky-release ]] || \
      grep -q '^VERSION_ID="9' /etc/os-release 2>/dev/null; then
@@ -294,16 +346,19 @@ fi
 # LLVM bitcode; older clang or gcc skip it since they don't support thin LTO.
 if command -v clang >/dev/null 2>&1 && clang --version 2>&1 | head -1 | grep -qvE 'version (3|4|5|6|7)\.'; then
   STATIC_CC=clang
+  STATIC_CXX=clang++
   STATIC_AR=$(command -v llvm-ar || echo ar)
   STATIC_RANLIB=$(command -v llvm-ranlib || echo ranlib)
   STATIC_LTO_FLAGS="-flto=thin"
 elif command -v gcc >/dev/null 2>&1; then
   STATIC_CC=gcc
+  STATIC_CXX=g++
   STATIC_AR=ar
   STATIC_RANLIB=ranlib
   STATIC_LTO_FLAGS=""
 else
   STATIC_CC=cc
+  STATIC_CXX=c++
   STATIC_AR=ar
   STATIC_RANLIB=ranlib
   STATIC_LTO_FLAGS=""
@@ -388,6 +443,7 @@ fi
 EXTRA_BUILD_PROPS=(
   "-Dexe.cflags.append=$USER_CFLAGS"
   "-Dexe.archiver=$STATIC_AR"
+  "-DstaticLib.libcQualifier=$STATIC_LIBC_QUALIFIER"
   # Force the compiler to clang since USER_CFLAGS contains clang-specific
   # flags. tcnative's profiles already set clang in some places but the
   # default + several inherit chains can fall back to gcc; pass it
@@ -424,7 +480,7 @@ for build in "${BUILDS[@]}"; do
     # Env vars CC/AR/RANLIB/LTO_FLAGS propagate to the build-static-archive
     # antrun's <exec> → make, where they win over make's implicit defaults.
     # Required for -flto=thin (clang only; gcc fallback skips LTO).
-    CC="$STATIC_CC" LTO_FLAGS="$STATIC_LTO_FLAGS" USER_CFLAGS="$USER_CFLAGS" \
+    CC="$STATIC_CC" CXX="$STATIC_CXX" LTO_FLAGS="$STATIC_LTO_FLAGS" USER_CFLAGS="$USER_CFLAGS" \
     ../mvnw "${mvn_args[@]}"
   )
 done
