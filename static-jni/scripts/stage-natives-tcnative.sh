@@ -250,10 +250,10 @@ SKIP_FLAGS=(
 #   - Debian provides the glibc counterpart with clang/LLVM and Go 1.24+.
 #     AlmaLinux 9 / CentOS 7 paths remain historical fallbacks.
 if command -v apk >/dev/null 2>&1; then
-  if ! command -v clang-22 >/dev/null 2>&1; then
+  if ! command -v clang-22 >/dev/null 2>&1 || ! command -v patchelf >/dev/null 2>&1; then
     apk add --no-cache --quiet \
       build-base clang22 clang22-extra-tools llvm22 lld22 compiler-rt \
-      cmake samurai patch perl perl-utils python3 \
+      cmake samurai patch patchelf perl perl-utils python3 \
       autoconf automake libtool make git rsync which file linux-headers musl-dev \
       libstdc++-dev apr-dev openssl-dev openjdk17-jdk rust cargo go >/dev/null 2>&1 || true
     [[ -x /usr/bin/samu && ! -e /usr/bin/ninja ]] && ln -sf /usr/bin/samu /usr/bin/ninja
@@ -274,11 +274,11 @@ if command -v apk >/dev/null 2>&1; then
   [[ -z "${JAVA_HOME:-}" && -d /usr/lib/jvm/java-17-openjdk ]] && export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
 elif command -v apt-get >/dev/null 2>&1; then
   if ! command -v clang >/dev/null 2>&1 || ! command -v javac >/dev/null 2>&1 || \
-     ! command -v go >/dev/null 2>&1; then
+     ! command -v go >/dev/null 2>&1 || ! command -v patchelf >/dev/null 2>&1; then
     export DEBIAN_FRONTEND=noninteractive
     apt-get update -qq
     apt-get install -y -qq --no-install-recommends \
-      build-essential clang llvm lld cmake ninja-build patch perl python3 \
+      build-essential clang llvm lld cmake ninja-build patch patchelf perl python3 \
       autoconf automake libtool libtool-bin make git rsync which file linux-libc-dev \
       libapr1-dev libssl-dev default-jdk rustc cargo golang-go \
       zip unzip >/dev/null
