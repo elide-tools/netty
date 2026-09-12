@@ -441,6 +441,8 @@ fi
 #                       the .llvmbc section); STATIC_AR is llvm-ar when
 #                       available.
 EXTRA_BUILD_PROPS=(
+  # Publish the archive only; shared-library portability checks belong to the shared JAR.
+  "-DskipNativeJar=true"
   "-Dexe.cflags.append=$USER_CFLAGS"
   "-Dexe.archiver=$STATIC_AR"
   "-DstaticLib.libcQualifier=$STATIC_LIBC_QUALIFIER"
