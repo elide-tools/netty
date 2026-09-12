@@ -19,13 +19,13 @@ on:
       tcnative_ref:
         description: "elide-tools/netty-tcnative ref to build against"
         required: false
-        default: "elide-2.0.81.Final"
+        default: "elide-2.0.84.Final"
 
 permissions:
   contents: read
 
 env:
-  TCNATIVE_REF: ${{ github.event.inputs.tcnative_ref || 'elide-2.0.81.Final' }}
+  TCNATIVE_REF: ${{ github.event.inputs.tcnative_ref || 'elide-2.0.84.Final' }}
   # Only these modules are consumed downstream. codec-native-quic and
   # resolver-dns-native-macos build but are unused; skipping them avoids the
   # slow and fragile BoringSSL/quiche legs.
